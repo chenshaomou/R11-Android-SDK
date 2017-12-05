@@ -1,0 +1,55 @@
+apply plugin: 'com.android.library'
+
+// jcenter plugin
+// apply plugin: 'com.aaron.gradle.bintray-release'
+apply plugin: 'com.novoda.bintray-release'
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode rootProject.ext.versionCode
+        versionName rootProject.ext.versionName
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    lintOptions {
+        abortOnError rootProject.ext.abortOnError
+    }
+    buildTypes {
+        debug {
+            minifyEnabled rootProject.ext.minifyEnabled
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        release {
+            minifyEnabled rootProject.ext.minifyEnabled
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "com.android.support.test:runner:$testRunnerVersion"
+    androidTestImplementation "com.android.support.test.espresso:espresso-core:$testEspressoVersion"
+}
+
+// upload to jcenter cmd
+// ./gradlew --stacktrace bintrayUpload -PbintrayUser=r11-devteam -PbintrayKey=XXXXXXXXXXXXXX -PdryRun=false
+publish {
+    userOrg = 'r11-devteam'
+    groupId = 'org.rainboweleven'
+    artifactId = 'R11Core'
+    publishVersion = "$versionName"
+    // archives file('build/outputs/test.jar')
+    desc = 'a framework that to use for hybrid app'
+    website = 'https://github.com/chenshaomou/R11-Android-SDK'
+}
+
+tasks.withType(Javadoc) {
+    options.addStringOption('Xdoclint:none', '-quiet')
+    options.addStringOption('encoding', 'UTF-8')
+}

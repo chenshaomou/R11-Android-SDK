@@ -54,5 +54,5 @@ dependencies {
     androidTestImplementation "com.android.support.test:runner:$testRunnerVersion"
     androidTestImplementation "com.android.support.test.espresso:espresso-core:$testEspressoVersion"
 
-    compile project(':R11Lib')
+    implementation project(':R11Lib')
 }

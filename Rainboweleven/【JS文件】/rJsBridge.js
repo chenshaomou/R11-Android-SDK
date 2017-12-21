@@ -153,16 +153,16 @@ function getJsBridge() {
          * @param callback 回调方法
          */
         on: function (eventName, callback) {
-            // 监听事件，文档规定监听事件的module值固定为：_event_on
-            this.call('_event_on', eventName, {}, callback)
+            // 监听事件，文档规定监听原生事件的module值固定为：event
+            this.call('event', 'on', {'eventName': eventName}, callback)
         },
         /**
-         * 解除监听原生事件
+         * 解除监听原生事件jsBridge
          * @param eventName 取消监听的事件名
          */
         off: function (eventName) {
-            // 解除监听，文档规定解除监听原生事件的module值固定为：_event_off
-            this.call('_event_off', eventName, {})
+            // 解除监听，文档规定解除监听原生事件的module值固定为：event
+            this.call('event', 'off', {'eventName': eventName})
         },
         /**
          * 发送事件到原生
@@ -170,8 +170,8 @@ function getJsBridge() {
          * @param params 参数
          */
         send: function (eventName, params) {
-            // 发送事件，文档规定解除监听原生事件的module值固定为：_event_send
-            this.call('_event_send', eventName, params)
+            // 发送事件，文档规定解除监听原生事件的module值固定为：event
+            this.call('event', 'send', {'eventName': eventName, "params": params})
         }
     }
 }

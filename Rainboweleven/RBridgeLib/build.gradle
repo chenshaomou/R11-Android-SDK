@@ -1,10 +1,12 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
+
+// jcenter plugin
+// apply plugin: 'com.aaron.gradle.bintray-release'
+apply plugin: 'com.novoda.bintray-release'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "org.rainboweleven.demo"
-
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode rootProject.ext.versionCode
@@ -13,24 +15,7 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     lintOptions {
-        checkReleaseBuilds rootProject.ext.checkReleaseBuilds
-        // Or, if you prefer, you can continue to check for errors in release builds,
-        // but continue the build even when errors are found:
         abortOnError rootProject.ext.abortOnError
-    }
-    signingConfigs {
-        debug {
-            storeFile file("../keystore/andy_keystore.jks")
-            storePassword "123456"
-            keyAlias "debug_keystore"
-            keyPassword "123456"
-        }
-        release {
-            storeFile file("../keystore/andy_keystore.jks")
-            storePassword "123456"
-            keyAlias "debug_keystore"
-            keyPassword "123456"
-        }
     }
     buildTypes {
         debug {
@@ -45,14 +30,29 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-
-    implementation "com.android.support:appcompat-v7:$v7SupportVersion"
-    implementation "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
 
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "com.android.support.test:runner:$testRunnerVersion"
     androidTestImplementation "com.android.support.test.espresso:espresso-core:$testEspressoVersion"
 
-    compile project(path: ':RBridgeLib')
+    implementation 'com.google.code.gson:gson:2.8.0'
+    implementation 'com.squareup.okhttp3:okhttp:3.9.1'
+}
+
+// upload to jcenter cmd
+// ./gradlew --stacktrace bintrayUpload -PbintrayUser=r11-devteam -PbintrayKey=XXXXXXXXXXXXXX -PdryRun=false
+publish {
+    userOrg = 'r11-devteam'
+    groupId = 'org.rainboweleven'
+    artifactId = 'rbridge'
+    publishVersion = "$versionName"
+    // archives file('build/outputs/test.jar')
+    desc = 'a framework that to use for hybrid app'
+    website = 'https://github.com/chenshaomou/R11-Android-SDK'
+}
+
+tasks.withType(Javadoc) {
+    options.addStringOption('Xdoclint:none', '-quiet')
+    options.addStringOption('encoding', 'UTF-8')
 }

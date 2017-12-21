@@ -1,1 +1,1 @@
-include ':R11Lib', ':R11Demo'
+include ':R11Lib', ':R11Demo', ':RBridgeLib'

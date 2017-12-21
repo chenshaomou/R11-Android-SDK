@@ -1,9 +1,5 @@
 apply plugin: 'com.android.library'
 
-// jcenter plugin
-// apply plugin: 'com.aaron.gradle.bintray-release'
-apply plugin: 'com.novoda.bintray-release'
-
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     defaultConfig {
@@ -35,21 +31,4 @@ dependencies {
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "com.android.support.test:runner:$testRunnerVersion"
     androidTestImplementation "com.android.support.test.espresso:espresso-core:$testEspressoVersion"
-}
-
-// upload to jcenter cmd
-// ./gradlew --stacktrace bintrayUpload -PbintrayUser=r11-devteam -PbintrayKey=XXXXXXXXXXXXXX -PdryRun=false
-publish {
-    userOrg = 'r11-devteam'
-    groupId = 'org.rainboweleven'
-    artifactId = 'R11Core'
-    publishVersion = "$versionName"
-    // archives file('build/outputs/test.jar')
-    desc = 'a framework that to use for hybrid app'
-    website = 'https://github.com/chenshaomou/R11-Android-SDK'
-}
-
-tasks.withType(Javadoc) {
-    options.addStringOption('Xdoclint:none', '-quiet')
-    options.addStringOption('encoding', 'UTF-8')
 }

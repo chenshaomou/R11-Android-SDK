@@ -66,6 +66,10 @@ public interface RWebViewInterface {
      * 在jsBridge中创建插件
      */
     String CREATE_PLUGIN_IN_JS_BRIDGE = "javascript:window.jsBridge.registerNative('%s', '%s')";
+    /**
+     * 在jsBridge中创建插件，含有自定义JS方法体创建
+     */
+    String CREATE_PLUGIN_IN_JS_BRIDGE_WITH_CUSTOM_FUN = "javascript:window.jsBridge.registerNative('%s', '%s', %s)";
 
     /**
      * 读取本地页面

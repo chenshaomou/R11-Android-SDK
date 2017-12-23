@@ -332,6 +332,11 @@ public class RBridgePluginManager {
         if (TextUtils.isEmpty(module)) {
             module = RWebViewInterface.MODULE_DEFAULT;
         }
+        // 自定义js function
+        // String function = "function (key,value){var params={\"key\":key,\"value\":value};return window.jsBridge.call(module,method,params)}";
+        // String script = String.format(RWebViewInterface.CREATE_PLUGIN_IN_JS_BRIDGE_WITH_CUSTOM_FUN, module, method, function);
+
+        // 不自定义function
         String script = String.format(RWebViewInterface.CREATE_PLUGIN_IN_JS_BRIDGE, module, method);
         return script;
     }

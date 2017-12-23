@@ -82,36 +82,61 @@ function initJsBridge(webViewType) {
      * @type {Function}
      * @param module 模块名，可为空，不传默认为userDefault
      * @param method 方法名，非空
-     * @param callFun 方法体，非空
+     * @param customFun 自定义JS方法，可空，适用于对参数做特殊定制的情况，如参数为key和value模式，由原生自行组装js function方法体
      */
-    window.jsBridge.registerNative = window.jsBridge.registerNative || function (module, method) {
+    window.jsBridge.registerNative = window.jsBridge.registerNative || function (module, method, customFun) {
+        var lastArg = arguments[arguments.length - 1]
+        // 是否含有自定义JS方法
+        var hasCustomFun = typeof lastArg == 'function'
         // 参数为1个
         if (arguments.length == 1) {
-            method = module
-            // 没有传递模块名，模块名默认为userDefault
-            module = 'userDefault'
+            if (hasCustomFun) {
+                throw 'registerNative不支持1个为function的参数'
+            } else {
+                method = module
+                // 没有传递模块名，模块名默认为userDefault
+                module = 'userDefault'
+            }
         }
         // 参数为2个
         else if (arguments.length == 2) {
-            //支持
+            if (hasCustomFun) {
+                customFun = method
+                method = module
+                // 没有传递模块名，模块名默认为userDefault
+                module = 'userDefault'
+            } else {
+                // 支持
+            }
+        }
+        // 参数为3个
+        else if (arguments.length == 3) {
+            // 支持
         }
         // 参数为0个或者其它，不支持，抛出异常
         else {
-            throw 'register方法必须是1个或者2个参数'
+            throw 'registerNative方法必须是1~3个参数'
         }
         var action = {}
-        action[method] = function (params, callback) {
-            // 参数为0个
-            if (arguments.length === 0) {
-                return window.jsBridge.call(module, method, {})
-            }
-            // 参数为1个
-            if (arguments.length === 1) {
-                return window.jsBridge.call(module, method, params)
-            }
-            // 参数为2个
-            if (arguments.length === 2) {
-                return window.jsBridge.call(module, method, params, callback)
+        // 自定义JS方法
+        if (hasCustomFun) {
+            action[method] = customFun
+        }
+        // 未自定义JS方法
+        else {
+            action[method] = function (params, callback) {
+                // 参数为0个
+                if (arguments.length === 0) {
+                    return window.jsBridge.call(module, method, {})
+                }
+                // 参数为1个
+                if (arguments.length === 1) {
+                    return window.jsBridge.call(module, method, params)
+                }
+                // 参数为2个，含有异步回调
+                if (arguments.length === 2) {
+                    window.jsBridge.call(module, method, params, callback)
+                }
             }
         }
         window.jsBridge[module] = window.jsBridge[module] || {}

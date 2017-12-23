@@ -11,6 +11,12 @@ import com.google.gson.GsonBuilder;
  */
 public class JsResult extends PluginResult {
 
+    /**
+     * 从JSON字符串构建
+     *
+     * @param jsonResult
+     * @return
+     */
     public static JsResult fromJsonStr(String jsonResult) {
         return new GsonBuilder().create().fromJson(jsonResult, JsResult.class);
     }

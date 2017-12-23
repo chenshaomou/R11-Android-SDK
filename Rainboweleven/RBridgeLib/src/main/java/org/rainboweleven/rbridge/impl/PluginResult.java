@@ -25,10 +25,12 @@ public class PluginResult {
     }
 
     public PluginResult(String errorMsg, String errorCode) {
+        mIsError = true;
         mError = new Error(errorMsg, errorCode);
     }
 
     public PluginResult(Object data) {
+        mIsError = false;
         mData = data;
     }
 

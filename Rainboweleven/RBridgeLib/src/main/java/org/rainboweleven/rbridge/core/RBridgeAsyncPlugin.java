@@ -3,11 +3,14 @@ package org.rainboweleven.rbridge.core;
 /**
  * 异步插件
  *
+ * @param <PARAMS> 参数类型
+ * @param <RESULT> 返回结果类型
  * @author andy(Andy)
- * @datetime 2017-12-17 18:15 GMT+8
+ * @datetime 2017-12-11 10:39 GMT+8
  * @email 411086563@qq.com
  */
 public interface RBridgeAsyncPlugin<PARAMS, RESULT> {
+
     /**
      * 插件被调用
      *
@@ -20,6 +23,8 @@ public interface RBridgeAsyncPlugin<PARAMS, RESULT> {
 
     /**
      * 调用native插件方法监听器
+     *
+     * @param <RESULT> 返回结果类型
      */
     interface OnCallPluginListener<RESULT> {
 

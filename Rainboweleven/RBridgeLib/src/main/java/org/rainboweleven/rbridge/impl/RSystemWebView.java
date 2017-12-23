@@ -1,19 +1,26 @@
 package org.rainboweleven.rbridge.impl;
 
 import android.content.Context;
+import android.os.Build;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.rainboweleven.rbridge.core.RBridgeAsyncPlugin;
-import org.rainboweleven.rbridge.core.RBridgeAsyncPlugin.OnCallPluginListener;
 import org.rainboweleven.rbridge.core.RBridgePlugin;
 import org.rainboweleven.rbridge.core.RNativeInterface;
 import org.rainboweleven.rbridge.core.RWebViewInterface;
+
+import java.util.concurrent.CountDownLatch;
 
 /**
  * 系统自带WebView实现，支持传递参数为JSONObject类型，返回参数为PluginResult的插件
@@ -22,7 +29,7 @@ import org.rainboweleven.rbridge.core.RWebViewInterface;
  * @datetime 2017-12-12 21:43 GMT+8
  * @email 411086563@qq.com
  */
-public class RSystemWebView extends WebView implements RWebViewInterface<JsResult>, RNativeInterface {
+public class RSystemWebView extends WebView implements RWebViewInterface, RNativeInterface {
 
     public RSystemWebView(Context context) {
         super(context);
@@ -51,8 +58,38 @@ public class RSystemWebView extends WebView implements RWebViewInterface<JsResul
 
     // 初始化
     private void init() {
-        RSystemPluginManager.getInstance().initPlugins(this);
-        RSystemPluginManager.getInstance().initEvents(this);
+        WebSettings settings = getSettings();
+        settings.setDomStorageEnabled(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            CookieManager.getInstance().setAcceptThirdPartyCookies(this, true);
+        }
+        settings.setAllowFileAccess(false);
+        settings.setAppCacheEnabled(false);
+        settings.setSavePassword(false);
+        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        settings.setJavaScriptEnabled(true);
+        settings.setLoadWithOverviewMode(true);
+        settings.setSupportMultipleWindows(true);
+        if (Build.VERSION.SDK_INT >= 21) {
+            settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        }
+        settings.setUseWideViewPort(true);
+        setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onReceivedTitle(WebView view, String title) {
+                super.onReceivedTitle(view, title);
+                // FIXME 这里待优化
+                postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        RBridgePluginManager.getInstance().onRWebViewReady(RSystemWebView.this);
+                    }
+                }, 100);
+            }
+        });
+        setWebViewClient(new WebViewClient());
+        addJavascriptInterface(this, "nativeBridge");
+        setWebContentsDebuggingEnabled(true);
     }
 
     @Override
@@ -65,91 +102,99 @@ public class RSystemWebView extends WebView implements RWebViewInterface<JsResul
     }
 
     @Override
+    public String evaluateJavascript(String script) {
+        final String[] syncResult = {null};
+        final CountDownLatch latch = new CountDownLatch(1);
+        evaluateJavascript(script, new OnCallJsResultListener<String>() {
+            @Override
+            public void onCallJsResult(String result) {
+                syncResult[0] = result;
+                latch.countDown();
+            }
+        });
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return syncResult[0];
+    }
+
+    @Override
     public void loadLocalURL(String url, String hash) {
         loadRemoteURL(url, hash);
     }
 
     @Override
-    public void evaluateJavascript(String script, final OnCallJsResultListener<JsResult> listener) {
-        // 执行JS代码
-        evaluateJavascript(script, new ValueCallback<String>() {
+    public void evaluateJavascript(final String script, final OnCallJsResultListener<String> listener) {
+        // Runnable
+        Runnable runnable = new Runnable() {
             @Override
-            public void onReceiveValue(String result) {
-                if (listener != null) {
-                    JsResult jsResult = null;
-                    if (!TextUtils.isEmpty(result)) {
-                        JsResult.fromJsonStr(result);
+            public void run() {
+                // 执行JS代码
+                evaluateJavascript(script, new ValueCallback<String>() {
+                    @Override
+                    public void onReceiveValue(String result) {
+                        if (listener != null) {
+                            listener.onCallJsResult(result);
+                        }
                     }
-                    listener.onCallJsResult(jsResult);
-                }
+                });
             }
-        });
+        };
+        // 主线程
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            runnable.run();
+        } else {
+            // 非主线程
+            post(runnable);
+        }
     }
 
     @Override
-    public void register(String module, String method, RBridgePlugin plugin) {
+    public void register(String module, String method, RBridgePlugin<?, ?> plugin) {
         // 交给插件管理器去注册
-        RSystemPluginManager.getInstance().register(this, module, method, plugin);
+        RBridgePluginManager.getInstance().register(this, module, method, plugin);
     }
 
     @Override
-    public void register(String module, String method, RBridgeAsyncPlugin plugin) {
+    public void register(String module, String method, RBridgeAsyncPlugin<?, ?> plugin) {
         // 交给插件管理器去注册
-        RSystemPluginManager.getInstance().register(this, module, method, plugin);
+        RBridgePluginManager.getInstance().register(this, module, method, plugin);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        RBridgePluginManager.getInstance().onRWebViewNotReady(this);
+        super.onDetachedFromWindow();
     }
 
     @Override
     @JavascriptInterface
-    public String call(String module, String method, String params, String jsCallback) {
-        // 将String参数转成JSONObject
+    public String call(String request) {
+        String module = null;
+        String method = null;
+        String params = null;
+        String jsCallback = null;
         try {
-            JSONObject jsonObjectParams = new JSONObject(params);
-            if (TextUtils.isEmpty(jsCallback)) {
-                // 同步
-                return call(module, method, jsonObjectParams);
-            } else {
-                // 异步
-                callAsync(module, method, jsonObjectParams, jsCallback);
-                return "";
-            }
+            JSONObject jsonObject = new JSONObject(request);
+            module = jsonObject.optString("module");
+            method = jsonObject.optString("method");
+            params = jsonObject.optString("params");
+            jsCallback = jsonObject.optString("callbackName");
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+        // 同步
+        if (TextUtils.isEmpty(jsCallback)) {
+            // 交给插件管理器去执行
+            return RBridgePluginManager.getInstance().runNativePlugin(module, method, params);
+        }
+        // 异步
+        else {
+            // 交给插件管理器去执行
+            RBridgePluginManager.getInstance().runNativePlugin(this, module, method, params, jsCallback);
             return "";
         }
-    }
-
-    // 同步执行插件
-    private String call(String module, String action, JSONObject params) {
-        // 交给插件管理器去执行
-        PluginResult result = RSystemPluginManager.getInstance().runNativePlugin(module, action, params);
-        if (result != null) {
-            return result.toJsonString();
-        } else {
-            return "";
-        }
-    }
-
-    // 异步步执行插件
-    private void callAsync(String module, String action, JSONObject params, final String jsCallback) {
-        // 交给插件管理器去执行
-        RSystemPluginManager.getInstance().runNativePlugin(module, action, params, new
-                OnCallPluginListener<PluginResult>() {
-            @Override
-            public void onCallPluginFinish() {
-                String script = String.format(DELETE_JS_BRIDGE_CALLBACK, jsCallback);
-                evaluateJavascript(script, (ValueCallback) null);
-            }
-
-            @Override
-            public void onCallPluginResult(PluginResult result) {
-                // 异步JS回调
-                String resultStr = "";
-                if (result != null) {
-                    resultStr = result.toJsonString();
-                }
-                String script = String.format(CALL_JS_BRIDGE_CALLBACK, jsCallback, resultStr);
-                evaluateJavascript(script, (ValueCallback) null);
-            }
-        });
     }
 }

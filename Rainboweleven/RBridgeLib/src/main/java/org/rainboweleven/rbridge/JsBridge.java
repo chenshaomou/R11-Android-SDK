@@ -78,7 +78,7 @@ public class JsBridge {
      * @param method
      * @param plugin
      */
-    public void register(RWebViewInterface webViewInterface, String module, String method, RBridgePlugin plugin) {
+    public void register(RWebViewInterface webViewInterface, String module, String method, RBridgePlugin<?, ?> plugin) {
         if (webViewInterface == null) {
             return;
         }
@@ -93,7 +93,8 @@ public class JsBridge {
      * @param method
      * @param plugin
      */
-    public void register(RWebViewInterface webViewInterface, String module, String method, RBridgeAsyncPlugin plugin) {
+    public void register(RWebViewInterface webViewInterface, String module, String method, RBridgeAsyncPlugin<?, ?>
+            plugin) {
         if (webViewInterface == null) {
             return;
         }
@@ -109,8 +110,8 @@ public class JsBridge {
      * @param params
      * @param listener
      */
-    public <RESULT> void call(RWebViewInterface webViewInterface, String module, String method, JSONObject params,
-                              OnCallJsResultListener<RESULT> listener) {
+    public void call(RWebViewInterface webViewInterface, String module, String method, JSONObject params,
+                     OnCallJsResultListener<String> listener) {
         if (webViewInterface == null) {
             return;
         }
@@ -120,8 +121,7 @@ public class JsBridge {
             module = RWebViewInterface.MODULE_DEFAULT;
         }
         // 执行 window.jsBridge.module.method(paramsStr)
-        script = String.format(RWebViewInterface.CALL_JS_BRIDGE_MODULE_FUNCTION, module, method, module, paramsStr);
-
+        script = String.format(RWebViewInterface.CALL_JS_BRIDGE_MODULE_FUNCTION, module, method, paramsStr);
         webViewInterface.evaluateJavascript(script, listener);
     }
 
@@ -132,8 +132,8 @@ public class JsBridge {
      * @param eventName
      * @param listener
      */
-    public <RESULT> void on(RWebViewInterface webViewInterface, final String eventName, final
-    OnEventReceivedListener<RESULT> listener) {
+    public void on(RWebViewInterface webViewInterface, final String eventName, final OnEventReceivedListener<String>
+            listener) {
         final String module = "event";
         final String method = "on";
         JSONObject params = new JSONObject();
@@ -143,9 +143,9 @@ public class JsBridge {
             e.printStackTrace();
         }
         // 执行 window.jsBridge.event.on(paramsStr)
-        call(webViewInterface, module, method, params, new OnCallJsResultListener<RESULT>() {
+        call(webViewInterface, module, method, params, new OnCallJsResultListener<String>() {
             @Override
-            public void onCallJsResult(RESULT result) {
+            public void onCallJsResult(String result) {
                 // 收到结果（事件）
                 if (listener != null) {
                     listener.onEventReceived(module, method, result);

@@ -14,11 +14,16 @@ public interface RNativeInterface {
     /**
      * html调用native插件
      *
-     * @param module
-     * @param method
-     * @param params
-     * @return
+     * @param request 请求字符串，文档约定数据结构如：
+     *                {
+     *                "modul": "store",
+     *                "metho": "getValue",
+     *                "params": {
+     *                "key": "token"
+     *                },
+     *                "callbackName": "store_getValue_10"
+     *                }
      */
     @JavascriptInterface
-    String call(String module, String method, String params, String jsCallback);
+    String call(String request);
 }

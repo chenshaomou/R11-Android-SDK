@@ -79,6 +79,8 @@ function initJsBridge(webViewType) {
      * jsBridge.registerNative('store', 'getValue')
      * // 不带module注册
      * jsBridge.register('paySuccess')
+     * // 原生自定义JS function
+     * jsBridge.registerNative('store', 'getValue', function (key,value){var params={\"key\":key,\"value\":value};return window.jsBridge.call(module,method,params)})
      * @type {Function}
      * @param module 模块名，可为空，不传默认为userDefault
      * @param method 方法名，非空

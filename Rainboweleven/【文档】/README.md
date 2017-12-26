@@ -9,7 +9,7 @@ implementation 'org.rainboweleven:rbridge:$versionName'
 #Rainboweleven Android
 
 **使用指南（mac电脑）：**
-* 1、下载源代码：[Rainboweleven安卓源码（最新分支）](https://github.com/chenshaomou/R11-Android-SDK/tree/development)，如果装了git，可以用git命令：git clone https://github.com/chenshaomou/R11-Android-SDK/tree/development
+* 1、下载源代码：[Rainboweleven安卓源码（最新分支）](https://github.com/chenshaomou/R11-Android-SDK/tree/development)，如果装了git，可以用git命令：git clone https://github.com/chenshaomou/R11-Android-SDK
 
 **2、电脑安装java环境**
 * 2-1、到[ java官网 ](http://www.oracle.com/technetwork/java/javase/downloads/index.html)下载JDK

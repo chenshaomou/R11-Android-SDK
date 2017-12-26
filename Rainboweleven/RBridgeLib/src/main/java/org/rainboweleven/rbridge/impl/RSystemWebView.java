@@ -2,6 +2,8 @@ package org.rainboweleven.rbridge.impl;
 
 import android.content.Context;
 import android.os.Build;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -20,6 +22,7 @@ import org.rainboweleven.rbridge.core.RBridgePlugin;
 import org.rainboweleven.rbridge.core.RNativeInterface;
 import org.rainboweleven.rbridge.core.RWebViewInterface;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -59,18 +62,47 @@ public class RSystemWebView extends WebView implements RWebViewInterface, RNativ
     // 初始化
     private void init() {
         WebSettings settings = getSettings();
-        settings.setDomStorageEnabled(true);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            CookieManager.getInstance().setAcceptThirdPartyCookies(this, true);
-        }
-        settings.setAllowFileAccess(false);
-        settings.setAppCacheEnabled(false);
-        settings.setSavePassword(false);
-        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+
+        // 设置是否允许访问Javascript
         settings.setJavaScriptEnabled(true);
+        // 设置UserAgent
+        settings.setUserAgentString("android_system_webview");
+        // 设置缓存模式
+        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        // 设置是否允许访问文件
+        settings.setAllowFileAccess(true);
+        // 设置H5缓存API是否启用
+        settings.setAppCacheEnabled(true);
+        // 设置dom操作API是否启用
+        settings.setDomStorageEnabled(true);
+        // 设置数据库存储是否启用
+        settings.setDatabaseEnabled(true);
+        // 强制开启调试模式
+        if (VERSION.SDK_INT >= VERSION_CODES.KITKAT) {
+            setWebContentsDebuggingEnabled(true);
+        }
+        // 开启跨域访问
+        if (VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN) {
+            settings.setAllowUniversalAccessFromFileURLs(true);
+        } else {
+            try {
+                Class<?> clazz = settings.getClass();
+                Method method = clazz.getMethod("setAllowUniversalAccessFromFileURLs", boolean.class);
+                if (method != null) {
+                    method.invoke(settings, true);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        // 5.0之后需要开启接受第三方cookie
+        if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+            CookieManager cookieManager = CookieManager.getInstance();
+            cookieManager.setAcceptThirdPartyCookies(this, true);
+        }
         settings.setLoadWithOverviewMode(true);
-        settings.setSupportMultipleWindows(true);
-        if (Build.VERSION.SDK_INT >= 21) {
+        // settings.setSupportMultipleWindows(true);
+        if (Build.VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
             settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         }
         settings.setUseWideViewPort(true);
@@ -89,7 +121,6 @@ public class RSystemWebView extends WebView implements RWebViewInterface, RNativ
         });
         setWebViewClient(new WebViewClient());
         addJavascriptInterface(this, "nativeBridge");
-        setWebContentsDebuggingEnabled(true);
     }
 
     @Override

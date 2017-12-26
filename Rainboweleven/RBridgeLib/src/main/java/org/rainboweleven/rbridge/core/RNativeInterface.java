@@ -16,8 +16,8 @@ public interface RNativeInterface {
      *
      * @param request 请求字符串，文档约定数据结构如：
      *                {
-     *                "modul": "store",
-     *                "metho": "getValue",
+     *                "module": "store",
+     *                "method": "getValue",
      *                "params": {
      *                "key": "token"
      *                },

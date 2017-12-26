@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
         mWebView = findViewById(R.id.webView);
 
         // 加载html
-        String path = "file:///android_asset/test.html";
+        String path = "file:///android_asset/html5/index.html";
         JsBridge.getInstance().loadLocalURL(mWebView, path, null);
 
         RBridgeAsyncPlugin stringNetworkPlugin = new org.rainboweleven.rbridge.impl.string_plugin.NetworkPlugin();

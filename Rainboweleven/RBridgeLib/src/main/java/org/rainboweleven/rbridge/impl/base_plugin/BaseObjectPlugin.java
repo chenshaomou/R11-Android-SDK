@@ -3,6 +3,7 @@ package org.rainboweleven.rbridge.impl.base_plugin;
 import org.json.JSONObject;
 import org.rainboweleven.rbridge.core.RBridgePlugin;
 import org.rainboweleven.rbridge.impl.PluginResult;
+import org.rainboweleven.rbridge.util.CreateHtmlPluginUtil;
 
 /**
  * 同步插件，传递JSONObject参数，返回PluginResult结果
@@ -15,4 +16,9 @@ public abstract class BaseObjectPlugin implements RBridgePlugin<JSONObject, Plug
 
     @Override
     public abstract PluginResult onPluginCalled(String module, String method, JSONObject params);
+
+    @Override
+    public String onGetCreatePluginScript(String module, String method) {
+        return CreateHtmlPluginUtil.getCreatePluginScript(module, method, null);
+    }
 }

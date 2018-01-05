@@ -1,6 +1,7 @@
 package org.rainboweleven.rbridge.impl.base_plugin;
 
 import org.rainboweleven.rbridge.core.RBridgePlugin;
+import org.rainboweleven.rbridge.util.CreateHtmlPluginUtil;
 
 /**
  * 同步插件，传递String参数，返回String结果
@@ -13,4 +14,9 @@ public abstract class BaseStringPlugin implements RBridgePlugin<String, String> 
 
     @Override
     public abstract String onPluginCalled(String module, String method, String params);
+
+    @Override
+    public String onGetCreatePluginScript(String module, String method) {
+        return CreateHtmlPluginUtil.getCreatePluginScript(module, method, null);
+    }
 }

@@ -22,6 +22,15 @@ public interface RBridgeAsyncPlugin<PARAMS, RESULT> {
     void onPluginCalled(String module, String method, PARAMS params, OnCallPluginListener<RESULT> listener);
 
     /**
+     * 获取挂载插件到html上的JavaScript代码
+     *
+     * @param module
+     * @param method
+     * @return
+     */
+    String onGetCreatePluginScript(String module, String method);
+
+    /**
      * 调用native插件方法监听器
      *
      * @param <RESULT> 返回结果类型

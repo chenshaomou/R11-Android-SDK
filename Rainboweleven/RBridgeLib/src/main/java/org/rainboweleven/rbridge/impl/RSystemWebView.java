@@ -116,7 +116,7 @@ public class RSystemWebView extends WebView implements RWebViewInterface, RNativ
                     public void run() {
                         RBridgePluginManager.getInstance().onRWebViewReady(RSystemWebView.this);
                     }
-                }, 100);
+                }, 1000);
             }
         });
         setWebViewClient(new WebViewClient());

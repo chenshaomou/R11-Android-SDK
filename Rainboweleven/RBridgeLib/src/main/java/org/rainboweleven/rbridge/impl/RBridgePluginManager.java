@@ -1,7 +1,5 @@
 package org.rainboweleven.rbridge.impl;
 
-import android.text.TextUtils;
-
 import org.json.JSONObject;
 import org.rainboweleven.rbridge.core.RBridgeAsyncPlugin;
 import org.rainboweleven.rbridge.core.RBridgeAsyncPlugin.OnCallPluginListener;
@@ -96,7 +94,7 @@ public class RBridgePluginManager {
         if (mIsRWebViewReady) {
             return;
         }
-        // initScript(webViewInterface);
+        initScript(webViewInterface);
         initPlugins(webViewInterface);
         initEvents(webViewInterface);
         mIsRWebViewReady = true;
@@ -130,7 +128,7 @@ public class RBridgePluginManager {
                     return;
                 }
                 // 生成 window.jsBridge.module.method(params, callback)
-                webViewInterface.evaluateJavascript(getCreatePluginScript(module, method), new
+                webViewInterface.evaluateJavascript(plugin.onGetCreatePluginScript(module, method), new
                         OnCallJsResultListener<String>() {
                     @Override
                     public void onCallJsResult(String result) {
@@ -161,7 +159,7 @@ public class RBridgePluginManager {
                     return;
                 }
                 // 生成 window.jsBridge.module.method(params, callback)
-                webViewInterface.evaluateJavascript(getCreatePluginScript(module, method), new
+                webViewInterface.evaluateJavascript(plugin.onGetCreatePluginScript(module, method), new
                         OnCallJsResultListener<String>() {
                     @Override
                     public void onCallJsResult(String result) {
@@ -325,19 +323,5 @@ public class RBridgePluginManager {
     // 获取插件的key
     private static String getKey(String module, String method) {
         return module + "." + method;
-    }
-
-    // 将插件生成到 window.jsBridge.module.method(params, callback)
-    private static String getCreatePluginScript(String module, String method) {
-        if (TextUtils.isEmpty(module)) {
-            module = RWebViewInterface.MODULE_DEFAULT;
-        }
-        // 自定义js function
-        // String function = "function (key,value){var params={\"key\":key,\"value\":value};return window.jsBridge.call(module,method,params)}";
-        // String script = String.format(RWebViewInterface.CREATE_PLUGIN_IN_JS_BRIDGE_WITH_CUSTOM_FUN, module, method, function);
-
-        // 不自定义function
-        String script = String.format(RWebViewInterface.CREATE_PLUGIN_IN_JS_BRIDGE, module, method);
-        return script;
     }
 }

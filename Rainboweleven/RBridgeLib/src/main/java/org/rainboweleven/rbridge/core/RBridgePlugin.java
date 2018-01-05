@@ -20,4 +20,13 @@ public interface RBridgePlugin<PARAMS, RESULT> {
      * @return
      */
     RESULT onPluginCalled(String module, String method, PARAMS params);
+
+    /**
+     * 获取挂载插件到html上的JavaScript代码
+     *
+     * @param module
+     * @param method
+     * @return
+     */
+    String onGetCreatePluginScript(String module, String method);
 }

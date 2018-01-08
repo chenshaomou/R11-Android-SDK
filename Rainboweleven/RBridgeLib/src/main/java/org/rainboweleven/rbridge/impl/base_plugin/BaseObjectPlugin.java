@@ -14,6 +14,9 @@ import org.rainboweleven.rbridge.util.CreateHtmlPluginUtil;
  */
 public abstract class BaseObjectPlugin implements RBridgePlugin<JSONObject, PluginResult> {
 
+    // 用于反射取泛型类型值
+    private RBridgePlugin<JSONObject, PluginResult> mSelf = this;
+
     @Override
     public abstract PluginResult onPluginCalled(String module, String method, JSONObject params);
 

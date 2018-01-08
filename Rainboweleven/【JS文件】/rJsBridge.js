@@ -323,7 +323,7 @@ function initJsBridge(webViewType) {
      */
     window.jsBridge.off = window.jsBridge.off || function (eventName) {
         // 解除监听，文档规定解除监听原生事件的module值固定为：event
-        window.jsBridge.call('event', 'off', {'eventName': eventName})
+        return window.jsBridge.call('event', 'off', {'eventName': eventName})
     }
     /**
      * 发送事件到原生，使用示例：
@@ -334,7 +334,7 @@ function initJsBridge(webViewType) {
      */
     window.jsBridge.send = window.jsBridge.send || function (eventName, params) {
         // 发送事件，文档规定解除监听原生事件的module值固定为：event
-        window.jsBridge.call('event', 'send', {'eventName': eventName, 'params': params})
+        return window.jsBridge.call('event', 'send', {'eventName': eventName, 'params': params})
     }
     /**
      * 发送文档事件，使用示例：

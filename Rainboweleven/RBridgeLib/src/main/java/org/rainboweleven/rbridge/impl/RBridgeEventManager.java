@@ -1,5 +1,12 @@
 package org.rainboweleven.rbridge.impl;
 
+import android.util.Log;
+
+import org.rainboweleven.rbridge.core.RBridgeAsyncPlugin.OnCallPluginListener;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * 事件管理器
  *
@@ -10,6 +17,8 @@ package org.rainboweleven.rbridge.impl;
 public class RBridgeEventManager {
 
     private static RBridgeEventManager sInstance;
+
+    private Map<String, OnCallPluginListener<PluginResult>> mCallPluginListenerMap = new HashMap<>();
 
     /**
      * 获取单例
@@ -32,17 +41,35 @@ public class RBridgeEventManager {
     }
 
     // 注册事件
-    public void register(String eventName, Object params) {
-
+    public void register(String eventName, OnCallPluginListener<PluginResult> listener) {
+        Log.e("wlf", "注册事件,eventName:" + eventName + ",listener:" + listener);
+        mCallPluginListenerMap.put(eventName, listener);
     }
 
     // 取消注册事件
     public void unregister(String eventName) {
+        OnCallPluginListener<PluginResult> listener = mCallPluginListenerMap.get(eventName);
+        if(listener != null) {
+            listener.onCallPluginFinish();
+        }
+        mCallPluginListenerMap.remove(eventName);
 
+        Log.e("wlf", "取消注册事件,eventName:" + eventName + ",listener:" + listener);
     }
 
     // 发送事件
     public void send(String eventName, Object params) {
 
+        // TODO send logic
+
+        String msg = "发送事件,eventName:" + eventName + ",params:" + params;
+
+        OnCallPluginListener<PluginResult> listener = mCallPluginListenerMap.get(eventName);
+        if(listener != null) {
+            PluginResult result = new PluginResult(msg);
+            listener.onCallPluginResult(result);
+        }
+
+        Log.e("wlf", "发送事件,eventName:" + eventName + ",listener:" + listener);
     }
 }

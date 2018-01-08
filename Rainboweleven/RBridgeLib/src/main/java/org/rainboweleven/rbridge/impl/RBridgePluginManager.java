@@ -6,6 +6,7 @@ import org.rainboweleven.rbridge.core.RBridgeAsyncPlugin.OnCallPluginListener;
 import org.rainboweleven.rbridge.core.RBridgePlugin;
 import org.rainboweleven.rbridge.core.RWebViewInterface;
 import org.rainboweleven.rbridge.core.RWebViewInterface.OnCallJsResultListener;
+import org.rainboweleven.rbridge.impl.object_plugin.EventAsyncPlugin;
 import org.rainboweleven.rbridge.impl.object_plugin.EventPlugin;
 import org.rainboweleven.rbridge.util.GenericUtil;
 
@@ -63,14 +64,6 @@ public class RBridgePluginManager {
 
     // 初始化sdk插件
     private void initPlugins(RWebViewInterface webViewInterface) {
-        // 存储插件，传递JSONObject参数，返回PluginResult结果
-        RBridgePlugin objectStorePlugin = new org.rainboweleven.rbridge.impl.object_plugin.StorePlugin();
-        register(webViewInterface, "store", "setValue", objectStorePlugin);
-        register(webViewInterface, "store", "getValue", objectStorePlugin);
-        register(webViewInterface, "store", "getAll", objectStorePlugin);
-        register(webViewInterface, "store", "remove", objectStorePlugin);
-        register(webViewInterface, "store", "removeAll", objectStorePlugin);
-
         // 存储插件，传递String参数，返回String结果
         RBridgePlugin stringStorePlugin = new org.rainboweleven.rbridge.impl.string_plugin.StorePlugin(webViewInterface.context());
         register(webViewInterface, "store", "setValue", stringStorePlugin);
@@ -83,8 +76,9 @@ public class RBridgePluginManager {
     // 初始化sdk事件
     private void initEvents(RWebViewInterface webViewInterface) {
         // 事件插件
+        EventAsyncPlugin eventAsyncPlugin = new EventAsyncPlugin();
         EventPlugin eventPlugin = new EventPlugin();
-        register(webViewInterface, "event", "on", eventPlugin);
+        register(webViewInterface, "event", "on", eventAsyncPlugin);
         register(webViewInterface, "event", "off", eventPlugin);
         register(webViewInterface, "event", "send", eventPlugin);
     }
@@ -185,8 +179,8 @@ public class RBridgePluginManager {
         String key = getKey(module, method);
         RBridgePlugin<?, ?> plugin = mPluginMap.get(key);
         try {
-            Type paramsType = GenericUtil.getGenericParameterType(plugin, 0);
-            Type resultType = GenericUtil.getGenericParameterType(plugin, 1);
+            Type paramsType = GenericUtil.getGenericParameterType(plugin, "mSelf", 0);
+            Type resultType = GenericUtil.getGenericParameterType(plugin, "mSelf", 1);
             if (paramsType != null && resultType != null && paramsType instanceof Class && resultType instanceof
                     Class) {
                 Class paramsClass = (Class) paramsType;
@@ -201,6 +195,7 @@ public class RBridgePluginManager {
                 }
             }
         } catch (Exception e) {
+            e.printStackTrace();
             return "";
         }
         // 默认以字符串类型处理
@@ -215,8 +210,8 @@ public class RBridgePluginManager {
         RBridgeAsyncPlugin<?, ?> plugin = mPluginAsyncMap.get(key);
         boolean handled = false;
         try {
-            Type paramsType = GenericUtil.getGenericParameterType(plugin, 0);
-            Type resultType = GenericUtil.getGenericParameterType(plugin, 1);
+            Type paramsType = GenericUtil.getGenericParameterType(plugin, "mSelf", 0);
+            Type resultType = GenericUtil.getGenericParameterType(plugin, "mSelf", 1);
             if (paramsType != null && resultType != null && paramsType instanceof Class && resultType instanceof
                     Class) {
                 Class paramsClass = (Class) paramsType;

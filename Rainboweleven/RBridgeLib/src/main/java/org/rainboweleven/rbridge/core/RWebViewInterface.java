@@ -1,5 +1,7 @@
 package org.rainboweleven.rbridge.core;
 
+import android.content.Context;
+
 /**
  * WebView操作html操作接口
  *
@@ -12,44 +14,48 @@ public interface RWebViewInterface {
     /**
      * 初始化脚本
      */
-    String INIT_SCRIPT = "function initJsBridge(webViewType){window.jsBridge=window.jsBridge||{};window.jsBridge" +
+    String INIT_SCRIPT = "function initJsBridge(webViewType){window.jsBridge=window.jsBridge||{};window.jsBridge" + "" +
             ".callbacks=window.jsBridge.callbacks||[];window.jsBridge.callbackCount=window.jsBridge.callbackCount||0;" +
-            "window.jsBridge.webViewType=window.jsBridge.webViewType||webViewType;window.jsBridge.register=window" +
-            ".jsBridge.register||function(module,method,callFun){if(arguments.length==2){callFun=method;" +
-            "method=module;module=\"userDefault\"}else{if(arguments.length==3)" +
-            "{}else{throw\"register方法必须是2个或者3个参数\"}}var action={};action[method]=callFun;window" +
-            ".jsBridge[module]=window.jsBridge[module]||{};Object.assign(window.jsBridge[module],action)};window" +
+            "" + "window.jsBridge.webViewType=window.jsBridge.webViewType||webViewType;window.jsBridge" +
+            ".register=window" + ".jsBridge.register||function(module,method,callFun){if(arguments.length==2)" +
+            "{callFun=method;" + "method=module;module=\"userDefault\"}else{if(arguments.length==3)" +
+            "{}else{throw\"register方法必须是2个或者3个参数\"}}var action={};action[method]=callFun;window" + "" +
+            ".jsBridge[module]=window.jsBridge[module]||{};Object.assign(window.jsBridge[module],action)};window" + "" +
             ".jsBridge.registerNative=window.jsBridge.registerNative||function(module,method,customFun){var " +
-            "lastArg=arguments[arguments.length-1];var hasCustomFun=typeof lastArg==\"function\";if(arguments" +
+            "lastArg=arguments[arguments.length-1];var hasCustomFun=typeof lastArg==\"function\";if(arguments" + "" +
             ".length==1){if(hasCustomFun){throw\"registerNative不支持1个为function的参数\"}else{method=module;" +
             "module=\"userDefault\"}}else{if(arguments.length==2){if(hasCustomFun){customFun=method;method=module;" +
             "module=\"userDefault\"}else{}}else{if(arguments.length==3)" +
             "{}else{throw\"registerNative方法必须是1~3个参数\"}}}var action={};if(hasCustomFun)" +
             "{action[method]=customFun}else{action[method]=function(params,callback){if(arguments.length===0){return " +
-            "window.jsBridge.call(module,method,{})}if(arguments.length===1){return window.jsBridge.call(module," +
-            "method,params)}if(arguments.length===2){window.jsBridge.call(module,method,params,callback)}}}window" +
-            ".jsBridge[module]=window.jsBridge[module]||{};Object.assign(window.jsBridge[module],action)};window" +
-            ".jsBridge.call=window.jsBridge.call||function(module,method,params,callback){var " +
-            "lastArg=arguments[arguments.length-1];var async=typeof lastArg==\"function\";if(arguments.length==3){if" +
-            "(async){callback=params;params=method;method=module;module=\"userDefault\"}else{}}else{if(arguments" +
+            "" + "window.jsBridge.call(module,method,{})}if(arguments.length===1){return window.jsBridge.call(module," +
+            "" + "method,params)}if(arguments.length===2){window.jsBridge.call(module,method,params,callback)" +
+            "}}}window" + ".jsBridge[module]=window.jsBridge[module]||{};Object.assign(window.jsBridge[module]," +
+            "action)};window" + ".jsBridge.call=window.jsBridge.call||function(module,method,params,callback){var " +
+            "lastArg=arguments[arguments.length-1];var async=typeof lastArg==\"function\";if(arguments.length==3){if"
+            + "(async){callback=params;params=method;method=module;module=\"userDefault\"}else{}}else{if(arguments" +
             ".length==4){}else{throw\"register方法必须是3个或者4个参数\"}}if(typeof params!=\"string\"){if(typeof " +
             "params==\"object\"||Object.prototype.toString.call(params)==\"[object Array]\"){params=JSON.stringify" +
             "(params||{})}else{params=params.toString()}}var request;if(async){var " +
-            "callbackName=module+\"_\"+method+\"_\"+window.jsBridge.callbackCount++;window.jsBridge" +
+            "callbackName=module+\"_\"+method+\"_\"+window.jsBridge.callbackCount++;window.jsBridge" + "" +
             ".callbacks[callbackName]=callback;request={\"module\":module,\"method\":method,\"params\":params," +
             "\"callbackName\":callbackName}}else{request={\"module\":module,\"method\":method,\"params\":params}}var " +
-            "requestStr=JSON.stringify(request||{});if(window.jsBridge.webViewType==\"WKWV\"){if(async){window.prompt" +
-            "(\"\",requestStr)}else{return window.prompt(\"\",requestStr)}}else{if(typeof window" +
-            ".nativeBridge==\"function\"){if(async){window.nativeBridge(requestStr)}else{return window.nativeBridge" +
-            "(requestStr)}}else{if(typeof window.nativeBridge==\"object\"){if(async){window.nativeBridge.call" +
-            "(requestStr)}else{return window.nativeBridge.call(requestStr)}}else{console.log(\"无window" +
-            ".nativeBridge被注册\")}}}};window.jsBridge.promise=window.jsBridge.promise||function(module,method,params)" +
-            "{return new Promise(function(resolve,reject){try{window.jsBridge.call(module,method,params,function" +
-            "(result){resolve(result)})}catch(e){reject(e)}})};window.jsBridge.on=window.jsBridge.on||function" +
-            "(eventName,callback){window.jsBridge.call(\"event\",\"on\",{\"eventName\":eventName},callback)};window" +
-            ".jsBridge.off=window.jsBridge.off||function(eventName){window.jsBridge.call(\"event\",\"off\"," +
-            "{\"eventName\":eventName})};window.jsBridge.send=window.jsBridge.send||function(eventName,params){window" +
-            ".jsBridge.call(\"event\",\"send\",{\"eventName\":eventName,\"params\":params})}}initJsBridge(\"%s\");";
+            "" + "requestStr=JSON.stringify(request||{});if(window.jsBridge.webViewType==\"WKWV\"){if(async){window" +
+            ".prompt" + "(\"\",requestStr)}else{return window.prompt(\"\",requestStr)}}else{if(typeof window" + "" +
+            ".nativeBridge==\"function\"){if(async){window.nativeBridge(requestStr)}else{return window.nativeBridge"
+            + "(requestStr)}}else{if(typeof window.nativeBridge==\"object\"){if(async){window.nativeBridge.call" + "" +
+            "(requestStr)}else{return window.nativeBridge.call(requestStr)}}else{console.log(\"无window" + "" +
+            ".nativeBridge被注册\")}}}};window.jsBridge.promise=window.jsBridge.promise||function(module,method,params)"
+            + "{return new Promise(function(resolve,reject){try{window.jsBridge.call(module,method,params,function" +
+            "(result){resolve(result)})}catch(e){reject(e)}})};window.jsBridge.on=window.jsBridge.on||function" + "" +
+            "(eventName,callback){window.jsBridge.call(\"event\",\"on\",{\"eventName\":eventName},callback)};window"
+            + ".jsBridge.off=window.jsBridge.off||function(eventName){window.jsBridge.call(\"event\",\"off\"," +
+            "{\"eventName\":eventName})};window.jsBridge.send=window.jsBridge.send||function(eventName,params)" +
+            "{window" + ".jsBridge.call(\"event\",\"send\",{\"eventName\":eventName,\"params\":params})};window" +
+            ".jsBridge" + ".sendDocumentEvent=window.jsBridge.sendDocumentEvent||function(eventName,cancelable){var " +
+            "event=window" + ".document.createEvent(\"Event\");if(arguments.length==1||typeof " +
+            "cancelable==\"undefined\")" + "{cancelable=false}event.initEvent(eventName,false,cancelable);window" +
+            ".document.dispatchEvent(event)" + "}}initJsBridge(\"%s\");";
     /**
      * 模块为空的时候默认挂载到userDefault对象
      */
@@ -74,6 +80,10 @@ public interface RWebViewInterface {
      * 在jsBridge中创建插件，含有自定义JS方法体创建
      */
     String CREATE_PLUGIN_IN_JS_BRIDGE_WITH_CUSTOM_FUN = "javascript:window.jsBridge.registerNative('%s', '%s', %s)";
+    /**
+     * 调用jsBridge.sendDocumentEvent方法发送文档事件
+     */
+    String CALL_SEND_DOCUMENT_EVENT = "javascript:window.jsBridge.sendDocumentEvent('%s')";
 
     /**
      * 读取本地页面
@@ -123,6 +133,13 @@ public interface RWebViewInterface {
      * @param plugin
      */
     void register(String module, String method, RBridgeAsyncPlugin<?, ?> plugin);
+
+    /**
+     * Context
+     *
+     * @return
+     */
+    Context context();
 
     /**
      * 调用JS结果监听器

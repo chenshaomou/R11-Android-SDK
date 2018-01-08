@@ -195,6 +195,11 @@ public class RSystemWebView extends WebView implements RWebViewInterface, RNativ
     }
 
     @Override
+    public Context context() {
+        return getContext();
+    }
+
+    @Override
     protected void onDetachedFromWindow() {
         RBridgePluginManager.getInstance().onRWebViewNotReady(this);
         super.onDetachedFromWindow();

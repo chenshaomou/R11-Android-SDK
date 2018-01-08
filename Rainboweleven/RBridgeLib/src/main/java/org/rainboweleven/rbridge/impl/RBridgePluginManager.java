@@ -72,7 +72,7 @@ public class RBridgePluginManager {
         register(webViewInterface, "store", "removeAll", objectStorePlugin);
 
         // 存储插件，传递String参数，返回String结果
-        RBridgePlugin stringStorePlugin = new org.rainboweleven.rbridge.impl.string_plugin.StorePlugin();
+        RBridgePlugin stringStorePlugin = new org.rainboweleven.rbridge.impl.string_plugin.StorePlugin(webViewInterface.context());
         register(webViewInterface, "store", "setValue", stringStorePlugin);
         register(webViewInterface, "store", "getValue", stringStorePlugin);
         register(webViewInterface, "store", "getAll", stringStorePlugin);
@@ -107,6 +107,9 @@ public class RBridgePluginManager {
             }
         }
         mRunnables.clear();
+        // 发送sdk ready事件
+        String script = String.format(RWebViewInterface.CALL_SEND_DOCUMENT_EVENT, "deviceready");
+        webViewInterface.evaluateJavascript(script, null);
     }
 
     // WebView未初始化好了

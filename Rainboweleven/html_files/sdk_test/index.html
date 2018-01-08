@@ -14,7 +14,6 @@
             box-shadow: 4px 2px 10px #999;
         }
     </style>
-    <script type="text/javascript" src="rJsBridge.min.js"></script>
 </head>
 <body>
 <h1>Hello RainbowEleven</h1>
@@ -32,34 +31,51 @@
 <div id="content"></div>
 </body>
 <script type="text/javascript">
-    // 给原生调用(不带参数)
-    // 原生将会调用到window.jsBridge.userDefault.testNavCall
-    jsBridge.register('testNavCall', function (params) {
-        var contentDiv = document.getElementById('content')
-        var paramsStr = JSON.stringify(params)
-        contentDiv.innerHTML = contentDiv.innerHTML + '<div>原生调用JS成功,原生传递参数：' + paramsStr + '</div>'
-        return 'testNavCall被调用，params：' + paramsStr
-    });
+    var deviceReady = false
+    document.addEventListener("deviceready", function(){
+        deviceReady = true
+        // 给原生调用(不带参数)
+        // 原生将会调用到window.jsBridge.userDefault.testNavCall
+        jsBridge.register('testNavCall', function (params) {
+            var contentDiv = document.getElementById('content')
+            var paramsStr = JSON.stringify(params)
+            contentDiv.innerHTML = contentDiv.innerHTML + '<div>原生调用JS成功,原生传递参数：' + paramsStr + '</div>'
+            return 'testNavCall被调用，params：' + paramsStr
+        });
+    }, false)
+
     // 同步调用原生插件(不带参数)
     function callSyn() {
+        if(!deviceReady){
+            return
+        }
         console.log('同步调用原生插件(不带参数) begin')
         var _result = jsBridge.call('store', 'getValue', {})
         console.log('同步调用原生插件(不带参数) end，原生返回结果：' + _result)
     }
     // 同步调用原生插件(带参数,字典)
     function callSynArgs() {
+        if(!deviceReady){
+            return
+        }
         console.log('同步调用原生插件(带参数,字典) begin')
         var _result = jsBridge.call('store', 'getValue', {'foo': 'bar'})
         console.log('同步调用原生插件(带参数,字典) end， 原生返回结果：' + _result)
     }
     // 同步调用原生插件(带参数,字符串)
     function callSynStringArgs() {
+        if(!deviceReady){
+            return
+        }
         console.log('同步调用原生插件(带参数,字符串) begin')
         var _result = jsBridge.call('store', 'getValue', 'this is a string')
         console.log('同步调用原生插件(带参数,字符串) end，原生返回结果：' + _result)
     }
     // 异步调用插件(不带参数)
     function callASyn() {
+        if(!deviceReady){
+            return
+        }
         console.log('异步调用插件(不带参数) begin')
         jsBridge.call('network', 'get', {}, function (r) {
             console.log('异步调用插件(不带参数) end，原生返回结果：' + r)
@@ -67,6 +83,9 @@
     }
     // 异步调用原生插件(参数,字典)
     function callASynArgs() {
+        if(!deviceReady){
+            return
+        }
         console.log('异步调用原生插件(参数,字典) begin')
         jsBridge.call('network', 'get', {'foo': 'bar'}, function (r) {
             console.log('异步调用原生插件(参数,字典) end，原生返回结果：' + r)
@@ -74,6 +93,9 @@
     }
     // 异步调用原生插件(参数,字符串)
     function callASynStringArgs() {
+        if(!deviceReady){
+            return
+        }
         console.log('异步调用原生插件(参数,字符串) begin')
         jsBridge.call('network', 'post', 'this is a string', function (r) {
             console.log('异步调用原生插件(参数,字符串) end，原生返回结果：' + r)
@@ -81,6 +103,9 @@
     }
     // 异步调用原生插件(参数,数字)
     function callASynNumberArgs() {
+        if(!deviceReady){
+            return
+        }
         console.log('异步调用原生插件(参数,数字) begin')
         jsBridge.call('network', 'post', 5, function (r) {
             console.log('异步调用原生插件(参数,数字) end，原生返回结果：' + r)
@@ -88,6 +113,9 @@
     }
     // 异步调用原生插件(参数,布尔值)
     function callASynBooleanArgs() {
+        if(!deviceReady){
+            return
+        }
         console.log('异步调用原生插件(参数,布尔值) begin')
         jsBridge.call('network', 'post', true, function (r) {
             console.log('异步调用原生插件(参数,布尔值) end，原生返回结果：' + r)
@@ -95,6 +123,9 @@
     }
     // 异步调用原生插件(参数,数组)
     function callASynArrayArgs() {
+        if(!deviceReady){
+            return
+        }
         console.log('异步调用原生插件(参数,数组) begin')
         jsBridge.call('network', 'post', ['foo', 'bar'], function (r) {
             console.log('异步调用原生插件(参数,数组) end，原生返回结果：' + r)
@@ -102,12 +133,18 @@
     }
     // 同步调用原生插件(store对象,字典)
     function callSynStoreObj() {
+        if(!deviceReady){
+            return
+        }
         console.log('同步调用原生插件(store对象,字典) begin')
         var _result = jsBridge.store.getValue({'foo': 'bar'})
         console.log('同步调用原生插件(store对象,字典) end, 原生返回结果：' + _result)
     }
     // 异步调用原生插件(store对象,字典)
     function callASynStoreObj() {
+        if(!deviceReady){
+            return
+        }
         console.log('异步调用原生插件(store对象,字典) begin')
         jsBridge.network.get({'foo': 'bar'}, function (r) {
             console.log('异步调用原生插件(store对象,字典) end, 原生返回结果：' + r)

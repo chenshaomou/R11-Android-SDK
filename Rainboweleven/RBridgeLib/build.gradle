@@ -47,7 +47,7 @@ dependencies {
 // upload to jcenter cmd
 // ./gradlew --stacktrace bintrayUpload -PbintrayUser=r11devteam -PbintrayKey=XXXXXXXXXXXXXXXXXXXXXXX -PdryRun=false
 publish {
-    userOrg = 'r11-devteam'
+    userOrg = 'r11devteam'
     groupId = 'org.rainboweleven'
     artifactId = 'rbridge'
     publishVersion = "$versionName"

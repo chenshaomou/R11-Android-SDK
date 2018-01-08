@@ -350,11 +350,7 @@ function initJsBridge(webViewType) {
         // 发送文档事件给JS
         var event = window.document.createEvent('Event')
         // 参数为1个
-        if (arguments.length == 1) {
-            // 默认为false
-            cancelable = false
-        }
-        if(typeof cancelable == 'undefined'){
+        if (arguments.length == 1 || typeof cancelable == 'undefined') {
             // 默认为false
             cancelable = false
         }

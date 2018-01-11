@@ -1,9 +1,10 @@
 # R11-Android-SDK
-## 项目支持gradle引入，rbridge的导入
+## 项目各个模块支持gradle引入
+** rbridge的导入 **
 ```SHELL
 implementation 'org.rainboweleven:rbridge:$versionName'
 ```
-查看最新$versionName版本到：https://jcenter.bintray.com/org/rainboweleven/rbridge
+查看各模块最新$versionName版本到：https://jcenter.bintray.com/org/rainboweleven
 
 
 #Rainboweleven Android

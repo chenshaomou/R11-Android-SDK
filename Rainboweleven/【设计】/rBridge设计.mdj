@@ -2739,7 +2739,7 @@
 															"_parent": {
 																"$ref": "AAAAAAFg4xMa2vBBXdA="
 															},
-															"name": "调用RBridgePluginManager分发事件",
+															"name": "调用RBridgePluginManager分发插件",
 															"source": {
 																"$ref": "AAAAAAFg4xMa2vBBXdA="
 															},
@@ -35609,7 +35609,7 @@
 									},
 									"edgePosition": 1,
 									"underline": false,
-									"text": "+调用RBridgePluginManager分发事件",
+									"text": "+调用RBridgePluginManager分发插件",
 									"horizontalAlignment": 2,
 									"verticalAlignment": 5,
 									"wordWrap": false

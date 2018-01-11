@@ -4,7 +4,10 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import org.json.JSONObject;
 import org.rainboweleven.rbridge.impl.base_plugin.BaseStringPlugin;
+
+import java.util.Map;
 
 /**
  * 存储插件，传递String参数，返回String结果
@@ -16,10 +19,11 @@ import org.rainboweleven.rbridge.impl.base_plugin.BaseStringPlugin;
 public class StorePlugin extends BaseStringPlugin {
 
     public static final String MODULE_NAME = "store";
-    public static final String METHOD_GETVALUE = "getValue";
-    public static final String METHOD_SETVALUE = "setValue";
-    public static final String METHOD_GETALL = "getAll";
+    public static final String METHOD_GET_VALUE = "getValue";
+    public static final String METHOD_SET_VALUE = "setValue";
+    public static final String METHOD_GET_ALL = "getAll";
 
+    // 本地store名字
     private static final String STORE_PLUGIN_NAME = "rBridge.StorePlugin";
 
     private SharedPreferences mSharedPreferences;
@@ -30,47 +34,45 @@ public class StorePlugin extends BaseStringPlugin {
 
     @Override
     public String onPluginCalled(String module, String method, String params) {
-        // Demo测试
-        String result = "StorePlugin(StringPlugin)被调用";
-        try {
-            result = result + "，module：" + module + "，method：" + method + "，params：" + params;
-            Log.e("wlf", result);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return result;
-
-        /**
-        // 具体实现
-        if(!MODULE_NAME.equals(module)){
+        if (!MODULE_NAME.equals(module)) {
             return null;
         }
-
         try {
             JSONObject jsonParams = new JSONObject(params);
-
-            // getValue
-            if (METHOD_GETVALUE.equals(module)) {
+            // 获取数据
+            if (METHOD_GET_VALUE.equals(module)) {
                 String key = jsonParams.optString("key");
                 String value = mSharedPreferences.getString(key, null);
                 return value;
             }
-            // setValue
-            else if (METHOD_SETVALUE.equals(module)) {
+            // 存储数据
+            else if (METHOD_SET_VALUE.equals(module)) {
                 String key = jsonParams.optString("key");
                 String value = jsonParams.optString("value");
                 boolean success = mSharedPreferences.edit().putString(key, value).commit();
                 return success + "";
             }
-            // getAll
-            else if (METHOD_GETALL.equals(module)) {
-                Map<String,?> results = mSharedPreferences.getAll();
+            // 获取全部数据
+            else if (METHOD_GET_ALL.equals(module)) {
+                Map<String, ?> results = mSharedPreferences.getAll();
                 return new JSONObject(results).toString();
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
-         */
+    }
+
+    // Demo测试用
+    private String forTest(String module, String method, String params) {
+        // Demo测试
+        String result = "StorePlugin(StringPlugin)被调用";
+        try {
+            result = result + "，module：" + module + "，method：" + method + "，params：" + params;
+            Log.e("andy", result);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 }

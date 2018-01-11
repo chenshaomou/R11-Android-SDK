@@ -18,6 +18,7 @@ public class RBridgeEventManager {
 
     private static RBridgeEventManager sInstance;
 
+    // 事件回调集合，key为事件名字，value为回调callback
     private Map<String, OnCallPluginListener<PluginResult>> mCallPluginListenerMap = new HashMap<>();
 
     /**
@@ -42,7 +43,7 @@ public class RBridgeEventManager {
 
     // 注册事件
     public void register(String eventName, OnCallPluginListener<PluginResult> listener) {
-        Log.e("wlf", "注册事件,eventName:" + eventName + ",listener:" + listener);
+        Log.e("andy", "注册事件,eventName:" + eventName + ",listener:" + listener);
         mCallPluginListenerMap.put(eventName, listener);
     }
 
@@ -54,7 +55,7 @@ public class RBridgeEventManager {
         }
         mCallPluginListenerMap.remove(eventName);
 
-        Log.e("wlf", "取消注册事件,eventName:" + eventName + ",listener:" + listener);
+        Log.e("andy", "取消注册事件,eventName:" + eventName + ",listener:" + listener);
     }
 
     // 发送事件
@@ -70,6 +71,6 @@ public class RBridgeEventManager {
             listener.onCallPluginResult(result);
         }
 
-        Log.e("wlf", "发送事件,eventName:" + eventName + ",listener:" + listener);
+        Log.e("andy", "发送事件,eventName:" + eventName + ",listener:" + listener);
     }
 }

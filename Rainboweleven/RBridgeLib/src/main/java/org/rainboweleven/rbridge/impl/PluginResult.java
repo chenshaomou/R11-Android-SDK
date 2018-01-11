@@ -24,16 +24,35 @@ public class PluginResult {
     protected PluginResult() {
     }
 
+    /**
+     * 异常构建
+     *
+     * @param errorMsg
+     * @param errorCode
+     */
     public PluginResult(String errorMsg, String errorCode) {
         mIsError = true;
         mError = new Error(errorMsg, errorCode);
     }
 
+    /**
+     * 成功构建
+     *
+     * @param data
+     */
     public PluginResult(Object data) {
         mIsError = false;
         mData = data;
     }
 
+    /**
+     * 全部字段构建
+     *
+     * @param isError
+     * @param errorMsg
+     * @param errorCode
+     * @param data
+     */
     public PluginResult(boolean isError, String errorMsg, String errorCode, Object data) {
         mIsError = isError;
         mError = new Error(errorMsg, errorCode);
@@ -51,7 +70,7 @@ public class PluginResult {
         @SerializedName("code")
         private String mCode;
 
-        public Error(String msg, String code) {
+        private Error(String msg, String code) {
             mMsg = msg;
             mCode = code;
         }

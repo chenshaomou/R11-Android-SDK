@@ -3,7 +3,7 @@
 ```SHELL
 implementation 'org.rainboweleven:rbridge:$versionName'
 ```
-查看最新$versionName版本到：https://r11-devteam.bintray.com/maven/org/rainboweleven/rbridge
+查看最新$versionName版本到：https://jcenter.bintray.com/org/rainboweleven/rbridge
 
 
 #Rainboweleven Android

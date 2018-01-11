@@ -37,5 +37,5 @@ dependencies {
     androidTestImplementation "com.android.support.test.espresso:espresso-core:$testEspressoVersion"
 
     // rbridge
-    compile 'org.rainboweleven:rbridge:0.0.4'
+    compile 'org.rainboweleven:rbridge:0.0.5'
 }

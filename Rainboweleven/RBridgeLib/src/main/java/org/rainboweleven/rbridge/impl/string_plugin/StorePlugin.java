@@ -22,6 +22,8 @@ public class StorePlugin extends BaseStringPlugin {
     public static final String METHOD_GET_VALUE = "getValue";
     public static final String METHOD_SET_VALUE = "setValue";
     public static final String METHOD_GET_ALL = "getAll";
+    public static final String METHOD_REMOVE = "remove";
+    public static final String METHOD_REMOVE_ALL = "removeAll";
 
     // 本地store名字
     private static final String STORE_PLUGIN_NAME = "rBridge.StorePlugin";
@@ -40,22 +42,33 @@ public class StorePlugin extends BaseStringPlugin {
         try {
             JSONObject jsonParams = new JSONObject(params);
             // 获取数据
-            if (METHOD_GET_VALUE.equals(module)) {
+            if (METHOD_GET_VALUE.equals(method)) {
                 String key = jsonParams.optString("key");
                 String value = mSharedPreferences.getString(key, null);
                 return value;
             }
             // 存储数据
-            else if (METHOD_SET_VALUE.equals(module)) {
+            else if (METHOD_SET_VALUE.equals(method)) {
                 String key = jsonParams.optString("key");
                 String value = jsonParams.optString("value");
                 boolean success = mSharedPreferences.edit().putString(key, value).commit();
                 return success + "";
             }
             // 获取全部数据
-            else if (METHOD_GET_ALL.equals(module)) {
+            else if (METHOD_GET_ALL.equals(method)) {
                 Map<String, ?> results = mSharedPreferences.getAll();
                 return new JSONObject(results).toString();
+            }
+            // 移除
+            else if (METHOD_REMOVE.equals(method)) {
+                String key = jsonParams.optString("key");
+                boolean success = mSharedPreferences.edit().remove(key).commit();
+                return success + "";
+            }
+            // 移除全部
+            else if (METHOD_REMOVE_ALL.equals(method)) {
+                boolean success = mSharedPreferences.edit().clear().commit();
+                return success + "";
             }
         } catch (Exception e) {
             e.printStackTrace();

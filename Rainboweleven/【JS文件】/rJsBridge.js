@@ -74,17 +74,19 @@ function initJsBridge(webViewType) {
         // window.jsBridge[module] = action
     }
     /**
-     * 注册原生插件/方法到window.jsBridge，使JS能通过window.jsBridge调用，原生使用示例：
+     * 注册原生插件/方法到window.jsBridge，使JS能通过window.jsBridge直接调用到原生插件，原生使用示例：
      * // 原生带module注册
-     * jsBridge.registerNative('store', 'getValue')
+     * jsBridge.registerNative('store', 'getValue')  -->  jsBridge.store.getValue(params, callback), 同步使用jsBridge.store.getValue(params)
      * // 不带module注册
-     * jsBridge.register('paySuccess')
-     * // 原生自定义JS function
-     * jsBridge.registerNative('store', 'getValue', function (key,value){var params={\"key\":key,\"value\":value};return window.jsBridge.call(module,method,params)})
+     * jsBridge.registerNative('paySuccess')  -->  jsBridge.userDefault.paySuccess(params, callback), 同步使用jsBridge.userDefault.paySuccess(params)
+     * // 原生自定义JS function(异步)
+     * jsBridge.registerNative('store', 'getValue', function (key,value,callback){var params={\"key\":key,\"value\":value};window.jsBridge.call(module,method,params,callback)})  -->  jsBridge.store.getValue(key, value, callback)
+     * // 原生自定义JS function(同步)
+     * jsBridge.registerNative('store', 'getValue', function (key,value){var params={\"key\":key,\"value\":value};return window.jsBridge.call(module,method,params)})  -->  jsBridge.store.getValue(key, value)
      * @type {Function}
      * @param module 模块名，可为空，不传默认为userDefault
      * @param method 方法名，非空
-     * @param customFun 自定义JS方法，可空，适用于对参数做特殊定制的情况，如参数为key和value模式，由原生自行组装js function方法体
+     * @param customFun 自定义JS方法，可为空，适用于对参数做特殊定制的情况，如参数为key和value模式，由原生自行组装js function方法体
      */
     window.jsBridge.registerNative = window.jsBridge.registerNative || function (module, method, customFun) {
         var lastArg = arguments[arguments.length - 1]
@@ -124,7 +126,7 @@ function initJsBridge(webViewType) {
         if (hasCustomFun) {
             action[method] = customFun
         }
-        // 未自定义JS方法
+        // 未自定义JS方法，使用默认的注册方法
         else {
             action[method] = function (params, callback) {
                 // 参数为0个
@@ -337,7 +339,7 @@ function initJsBridge(webViewType) {
         return window.jsBridge.call('event', 'send', {'eventName': eventName, 'params': params})
     }
     /**
-     * 发送文档事件，使用示例：
+     * 发送文档事件，原生可以直接调用此function发送JS文档事件，使用示例：
      * // 1个参数
      * jsBridge.sendDocumentEvent('deviceready')
      * // 2个参数

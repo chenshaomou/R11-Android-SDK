@@ -1,5 +1,8 @@
 package org.rainboweleven.rbridge.impl;
 
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
+
 import org.json.JSONObject;
 import org.rainboweleven.rbridge.core.RBridgeAsyncPlugin;
 import org.rainboweleven.rbridge.core.RBridgeAsyncPlugin.OnCallPluginListener;
@@ -8,6 +11,7 @@ import org.rainboweleven.rbridge.core.RWebViewInterface;
 import org.rainboweleven.rbridge.core.RWebViewInterface.OnCallJsResultListener;
 import org.rainboweleven.rbridge.impl.object_plugin.EventAsyncPlugin;
 import org.rainboweleven.rbridge.impl.object_plugin.EventPlugin;
+import org.rainboweleven.rbridge.impl.string_plugin.StorePlugin;
 import org.rainboweleven.rbridge.util.GenericUtil;
 
 import java.lang.reflect.Type;
@@ -58,19 +62,24 @@ public class RBridgePluginManager {
     }
 
     private void initScript(RWebViewInterface webViewInterface) {
-        String script = String.format(RWebViewInterface.INIT_SCRIPT, "ADCRMWV");
+        String webViewType = "ADCRMWV";
+        if (VERSION.SDK_INT < VERSION_CODES.KITKAT) {
+            webViewType = "ADWKWV";
+        }
+        String script = String.format(RWebViewInterface.INIT_SCRIPT, webViewType);
         webViewInterface.evaluateJavascript(script, null);
     }
 
     // 初始化sdk插件
     private void initPlugins(RWebViewInterface webViewInterface) {
         // 存储插件，传递String参数，返回String结果
-        RBridgePlugin stringStorePlugin = new org.rainboweleven.rbridge.impl.string_plugin.StorePlugin(webViewInterface.context());
-        register(webViewInterface, "store", "setValue", stringStorePlugin);
-        register(webViewInterface, "store", "getValue", stringStorePlugin);
-        register(webViewInterface, "store", "getAll", stringStorePlugin);
-        register(webViewInterface, "store", "remove", stringStorePlugin);
-        register(webViewInterface, "store", "removeAll", stringStorePlugin);
+        RBridgePlugin stringStorePlugin = new StorePlugin(webViewInterface.context());
+        String module = StorePlugin.MODULE_NAME;
+        register(webViewInterface, module, StorePlugin.METHOD_SET_VALUE, stringStorePlugin);
+        register(webViewInterface, module, StorePlugin.METHOD_GET_VALUE, stringStorePlugin);
+        register(webViewInterface, module, StorePlugin.METHOD_GET_ALL, stringStorePlugin);
+        register(webViewInterface, module, StorePlugin.METHOD_REMOVE, stringStorePlugin);
+        register(webViewInterface, module, StorePlugin.METHOD_REMOVE_ALL, stringStorePlugin);
     }
 
     // 初始化sdk事件
@@ -78,9 +87,9 @@ public class RBridgePluginManager {
         // 事件插件
         EventAsyncPlugin eventAsyncPlugin = new EventAsyncPlugin();
         EventPlugin eventPlugin = new EventPlugin();
-        register(webViewInterface, "event", "on", eventAsyncPlugin);
-        register(webViewInterface, "event", "off", eventPlugin);
-        register(webViewInterface, "event", "send", eventPlugin);
+        register(webViewInterface, EventAsyncPlugin.MODULE_NAME, EventAsyncPlugin.METHOD_ON, eventAsyncPlugin);
+        register(webViewInterface, EventPlugin.MODULE_NAME, EventPlugin.METHOD_OFF, eventPlugin);
+        register(webViewInterface, EventPlugin.MODULE_NAME, EventPlugin.METHOD_SEND, eventPlugin);
     }
 
     // WebView已经初始化好了

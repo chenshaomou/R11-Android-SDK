@@ -41,21 +41,21 @@ public interface RWebViewInterface {
             ".callbacks[callbackName]=callback;request={\"module\":module,\"method\":method,\"params\":params," +
             "\"callbackName\":callbackName}}else{request={\"module\":module,\"method\":method,\"params\":params}}var " +
             "requestStr=JSON.stringify(request||{});if(window.jsBridge.webViewType==\"WKWV\"){if(async){window.prompt" +
-            "(\"\",requestStr)}else{return window.prompt(\"\",requestStr)}}else{if(typeof window" +
-            ".nativeBridge==\"function\"){if(async){window.nativeBridge(requestStr)}else{return window.nativeBridge" +
-            "(requestStr)}}else{if(typeof window.nativeBridge==\"object\"){if(async){window.nativeBridge.call" +
-            "(requestStr)}else{return window.nativeBridge.call(requestStr)}}else{console.log(\"无window" +
-            ".nativeBridge被注册\")}}}};window.jsBridge.promise=window.jsBridge.promise||function(module,method,params)" +
-            "{return new Promise(function(resolve,reject){try{window.jsBridge.call(module,method,params,function" +
-            "(result){resolve(result)})}catch(e){reject(e)}})};window.jsBridge.on=window.jsBridge.on||function" +
-            "(eventName,callback){window.jsBridge.call(\"event\",\"on\",{\"eventName\":eventName},callback)};window" +
-            ".jsBridge.off=window.jsBridge.off||function(eventName){return window.jsBridge.call(\"event\",\"off\"," +
-            "{\"eventName\":eventName})};window.jsBridge.send=window.jsBridge.send||function(eventName,params){return" +
-            " window.jsBridge.call(\"event\",\"send\",{\"eventName\":eventName,\"params\":params})};window.jsBridge" +
-            ".sendDocumentEvent=window.jsBridge.sendDocumentEvent||function(eventName,cancelable){var event=window" +
-            ".document.createEvent(\"Event\");if(arguments.length==1||typeof cancelable==\"undefined\")" +
-            "{cancelable=false}event.initEvent(eventName,false,cancelable);window.document.dispatchEvent(event)" +
-            "}}initJsBridge(\"%s\");";
+            "(window.jsBridge.webViewType,requestStr)}else{return window.prompt(window.jsBridge.webViewType," +
+            "requestStr)}}else{if(typeof window.nativeBridge==\"function\"){if(async){window.nativeBridge(requestStr)" +
+            "}else{return window.nativeBridge(requestStr)}}else{if(typeof window.nativeBridge==\"object\"){if(async)" +
+            "{window.nativeBridge.call(requestStr)}else{return window.nativeBridge.call(requestStr)}}else{console.log" +
+            "(\"无window.nativeBridge被注册\")}}}};window.jsBridge.promise=window.jsBridge.promise||function(module," +
+            "method,params){return new Promise(function(resolve,reject){try{window.jsBridge.call(module,method," +
+            "params,function(result){resolve(result)})}catch(e){reject(e)}})};window.jsBridge.on=window.jsBridge" +
+            ".on||function(eventName,callback){window.jsBridge.call(\"event\",\"on\",{\"eventName\":eventName}," +
+            "callback)};window.jsBridge.off=window.jsBridge.off||function(eventName){return window.jsBridge.call" +
+            "(\"event\",\"off\",{\"eventName\":eventName})};window.jsBridge.send=window.jsBridge.send||function" +
+            "(eventName,params){return window.jsBridge.call(\"event\",\"send\",{\"eventName\":eventName," +
+            "\"params\":params})};window.jsBridge.sendDocumentEvent=window.jsBridge.sendDocumentEvent||function" +
+            "(eventName,cancelable){var event=window.document.createEvent(\"Event\");if(arguments.length==1||typeof " +
+            "cancelable==\"undefined\"){cancelable=false}event.initEvent(eventName,false,cancelable);window.document" +
+            ".dispatchEvent(event)}}initJsBridge(\"%s\");";
     /**
      * 模块为空的时候默认挂载到userDefault对象
      */

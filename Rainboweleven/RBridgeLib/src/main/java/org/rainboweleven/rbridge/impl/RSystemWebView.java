@@ -1,6 +1,8 @@
 package org.rainboweleven.rbridge.impl;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
@@ -119,7 +121,32 @@ public class RSystemWebView extends WebView implements RWebViewInterface {
         });
         setWebViewClient(new WebViewClient());
         addJavascriptInterface(this, "nativeBridge");
+
+
+        /**
+         * 广播机制
+         * */
+        broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                // 第一个是事件的名称 要跟iOS 做统一处理 ， 第二哥参数是 要传给js 事件的参数
+                String script = String .format(RWebViewInterface.CALL_JS_BRIDGE_EVENT_TIGGER,intent.getAction(),intent.getDataString());
+                RSystemWebView.this.evaluateJavascript(script);
+            }
+        };
+
+        // 注册广播 filter 要排除自己的广播
+        this.context().registerReceiver(broadcastReceiver,null);
+
+        // 注销广播
+        if(broadcastReceiver!=null){
+            this.context().unregisterReceiver(broadcastReceiver);
+        }
+
     }
+
+    private BroadcastReceiver broadcastReceiver;
+
 
     @Override
     public void loadRemoteURL(String url, String hash) {

@@ -32,120 +32,21 @@ function initJsBridge(webViewType) {
      */
     window.jsBridge.webViewType = window.jsBridge.webViewType || webViewType
     /**
-     * 注册JS插件/方法到window.jsBridge，使原生能通过window.jsBridge调用，使用示例：
-     * // 带module注册
-     * jsBridge.register('store', 'getValue', function(params){
-     *      var key = params['key']
-     *      return window.localStorage.getItem(key)
-     *   }
-     * )
-     * // 不带module注册
-     * jsBridge.register('paySuccess', function(params){
-     *      var orderNo = params['orderNo']
-     *      notifyPaySuccess(orderNo)
-     *      return true
-     *    }
-     * )
+     * 注册JS插件/方法到window.jsBridge，使原生能通过window.jsBridge.func调用，使用示例：
      * @type {Function}
-     * @param module 模块名，可为空，不传默认为userDefault
      * @param method 方法名，非空
      * @param callFun 方法体，非空
      */
-    window.jsBridge.register = window.jsBridge.register || function (module, method, callFun) {
+    window.jsBridge.register = window.jsBridge.register || function (method, callFun) {
         // 参数为2个
-        if (arguments.length == 2) {
-            callFun = method
-            method = module
-            // 没有传递模块名，模块名默认为userDefault
-            module = 'userDefault'
+        if (arguments.length < 2) {
+            throw 'register method must be 2  params'
         }
         // 参数为3个
-        else if (arguments.length == 3) {
-            //支持
-        }
-        // 参数为1个或者其它，不支持，抛出异常
-        else {
-            throw 'register方法必须是2个或者3个参数'
-        }
         var action = {}
         action[method] = callFun
-        window.jsBridge[module] = window.jsBridge[module] || {}
-        Object.assign(window.jsBridge[module], action)
-        // window.jsBridge[module] = action
-    }
-    /**
-     * 注册原生插件/方法到window.jsBridge，使JS能通过window.jsBridge直接调用到原生插件，原生使用示例：
-     * // 原生带module注册
-     * jsBridge.registerNative('store', 'getValue')  -->  jsBridge.store.getValue(params, callback), 同步使用jsBridge.store.getValue(params)
-     * // 不带module注册
-     * jsBridge.registerNative('paySuccess')  -->  jsBridge.userDefault.paySuccess(params, callback), 同步使用jsBridge.userDefault.paySuccess(params)
-     * // 原生自定义JS function(异步)
-     * jsBridge.registerNative('store', 'getValue', function (key,value,callback){var params={\"key\":key,\"value\":value};window.jsBridge.call(module,method,params,callback)})  -->  jsBridge.store.getValue(key, value, callback)
-     * // 原生自定义JS function(同步)
-     * jsBridge.registerNative('store', 'getValue', function (key,value){var params={\"key\":key,\"value\":value};return window.jsBridge.call(module,method,params)})  -->  jsBridge.store.getValue(key, value)
-     * @type {Function}
-     * @param module 模块名，可为空，不传默认为userDefault
-     * @param method 方法名，非空
-     * @param customFun 自定义JS方法，可为空，适用于对参数做特殊定制的情况，如参数为key和value模式，由原生自行组装js function方法体
-     */
-    window.jsBridge.registerNative = window.jsBridge.registerNative || function (module, method, customFun) {
-        var lastArg = arguments[arguments.length - 1]
-        // 是否含有自定义JS方法
-        var hasCustomFun = typeof lastArg == 'function'
-        // 参数为1个
-        if (arguments.length == 1) {
-            if (hasCustomFun) {
-                throw 'registerNative不支持1个为function的参数'
-            } else {
-                method = module
-                // 没有传递模块名，模块名默认为userDefault
-                module = 'userDefault'
-            }
-        }
-        // 参数为2个
-        else if (arguments.length == 2) {
-            if (hasCustomFun) {
-                customFun = method
-                method = module
-                // 没有传递模块名，模块名默认为userDefault
-                module = 'userDefault'
-            } else {
-                // 支持
-            }
-        }
-        // 参数为3个
-        else if (arguments.length == 3) {
-            // 支持
-        }
-        // 参数为0个或者其它，不支持，抛出异常
-        else {
-            throw 'registerNative方法必须是1~3个参数'
-        }
-        var action = {}
-        // 自定义JS方法
-        if (hasCustomFun) {
-            action[method] = customFun
-        }
-        // 未自定义JS方法，使用默认的注册方法
-        else {
-            action[method] = function (params, callback) {
-                // 参数为0个
-                if (arguments.length === 0) {
-                    return window.jsBridge.call(module, method, {})
-                }
-                // 参数为1个
-                if (arguments.length === 1) {
-                    return window.jsBridge.call(module, method, params)
-                }
-                // 参数为2个，含有异步回调
-                if (arguments.length === 2) {
-                    window.jsBridge.call(module, method, params, callback)
-                }
-            }
-        }
-        window.jsBridge[module] = window.jsBridge[module] || {}
-        Object.assign(window.jsBridge[module], action)
-        // window.jsBridge[module] = action
+        window.jsBridge.func = window.jsBridge.func || {}
+        Object.assign(window.jsBridge.func, action)
     }
     /**
      * 调用原生的核心方法，调用原生插件的同步/异步方法，使用示例：
@@ -179,10 +80,7 @@ function initJsBridge(webViewType) {
             // 异步
             if (async) {
                 callback = params
-                params = method
-                method = module
-                // 没有传递模块名，模块名默认为userDefault
-                module = 'userDefault'
+                params = ''
             }
             // 同步
             else {
@@ -195,7 +93,7 @@ function initJsBridge(webViewType) {
         }
         // 参数个数为其它，不支持，抛出异常
         else {
-            throw 'register方法必须是3个或者4个参数'
+            throw 'register method must be 3 or 4 params'
         }
         if (typeof params != 'string') {
             // Object或者Array，转成字符串
@@ -251,7 +149,7 @@ function initJsBridge(webViewType) {
             // 没有定义nativeBridge对象或者nativeBridge为其他类型，暂时不支持
             else {
                 // 没有可以调用的原生bridge对象，FIXME H5可以考虑自己吞了通用异常逻辑
-                console.log('无window.nativeBridge被注册')
+                console.log('no window.nativeBridge has been registered')
             }
         }
     }
@@ -290,11 +188,24 @@ function initJsBridge(webViewType) {
      * )
      * @type {Function}
      * @param eventName 要监听的事件名，非空
+     * @param observerKey 要监听的对象名称，可以为空
      * @param callback 回调方法，非空
      */
-    window.jsBridge.on = window.jsBridge.on || function (eventName, callback) {
-        // 监听事件，文档规定监听原生事件的module值固定为：event
-        window.jsBridge.call('event', 'on', {'eventName': eventName}, callback)
+    window.jsBridge.on = window.jsBridge.on || function (eventName, observerKey, callback) {
+        var lastArg = arguments[arguments.length - 1]
+        window.jsBridge.events = window.jsBridge.events || {}
+        window.jsBridge.events.observers = window.jsBridge.events.observers || {}
+        if (typeof lastArg == 'function'){
+            if (arguments.length < 3){
+                // observer 没有传，默认 jsBridge 为观察者
+                callback = observerKey
+                observerKey = "window.jsBridge"
+            }
+            window.jsBridge.events.observers[eventName] = window.jsBridge.events.observers[eventName] || {}
+            window.jsBridge.events.observers[eventName][observerKey] = callback
+        }else{
+            throw 'callback must de a function'
+        }
     }
     /**
      * 解除监听原生事件，使用示例：
@@ -302,9 +213,16 @@ function initJsBridge(webViewType) {
      * @type {Function}
      * @param eventName 取消监听的事件名，非空
      */
-    window.jsBridge.off = window.jsBridge.off || function (eventName) {
-        // 解除监听，文档规定解除监听原生事件的module值固定为：event
-        return window.jsBridge.call('event', 'off', {'eventName': eventName})
+    window.jsBridge.off = window.jsBridge.off || function (eventName, observerKey) {
+        // 解除监听，文档规定解除监听原生事件的module值固定为：events
+        window.jsBridge.events = window.jsBridge.events || {}
+        window.jsBridge.events.observers = window.jsBridge.events.observers || {}
+        if (arguments.length < 2){
+            observerKey = "window.jsBridge"
+        }
+        if (window.jsBridge.events.observers[eventName] && window.jsBridge.events.observers[eventName][observerKey]){
+            delete window.jsBridge.events.observers[eventName][observerKey]
+        }
     }
     /**
      * 发送事件到原生，使用示例：
@@ -314,31 +232,28 @@ function initJsBridge(webViewType) {
      * @param params 参数，非空
      */
     window.jsBridge.send = window.jsBridge.send || function (eventName, params) {
-        // 发送事件，文档规定解除监听原生事件的module值固定为：event
-        return window.jsBridge.call('event', 'send', {'eventName': eventName, 'params': params})
+        // 发送事件，文档规定解除监听原生事件的module值固定为：events
+        params = params || {}
+        params.webviewid = window.jsBridge.id
+        return window.jsBridge.call('events', 'send', {'eventName': eventName, 'params': params})
     }
+
     /**
-     * 发送文档事件，原生可以直接调用此function发送JS文档事件，使用示例：
-     * // 1个参数
-     * jsBridge.sendDocumentEvent('deviceready')
-     * // 2个参数
-     * jsBridge.sendDocumentEvent('deviceready', true)
-     * @type {Function}
-     * @param eventName 要发送的事件名，非空
-     * @param cancelable 是否可取消，可为空，不传默认为false
+     * 触发事件
+     * @eventName 事件名称
+     * @params 事件参数
      */
-    window.jsBridge.sendDocumentEvent = window.jsBridge.sendDocumentEvent || function (eventName, cancelable) {
-        // 发送文档事件给JS
-        var event = window.document.createEvent('Event')
-        // 参数为1个
-        if (arguments.length == 1 || typeof cancelable == 'undefined') {
-            // 默认为false
-            cancelable = false
+    window.jsBridge.events = window.jsBridge.events || {}
+    window.jsBridge.events.observers = window.jsBridge.events.observers || {}
+    window.jsBridge.events.tigger = window.jsBridge.register.tigger || function(eventName,params){
+        if (window.jsBridge.events.observers[eventName]){
+            Object.keys(window.jsBridge.events.observers[eventName]).every(function (element, index, array){
+                window.jsBridge.events.observers[eventName][element](params)
+            })
         }
-        event.initEvent(eventName, false, cancelable)
-        // 发送事件
-        window.document.dispatchEvent(event)
     }
 }
 // 初始化
-initJsBridge('ADCRMWV')
+initJsBridge('ADCRMWV');
+window.jsBridge.id="1";
+jsBridge.send('domLoadFinish');

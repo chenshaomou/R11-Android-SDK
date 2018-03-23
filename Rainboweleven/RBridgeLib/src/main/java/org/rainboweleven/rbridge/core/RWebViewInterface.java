@@ -33,6 +33,11 @@ public interface RWebViewInterface {
     String CALL_JS_BRIDGE_MODULE_FUNCTION = "javascript:window.jsBridge.func.%s.%s('%s');";
 
     /**
+     * 系统事件调用js
+     */
+    String CALL_JS_BRIDGE_EVENT_TIGGER = "javascript:window.jsBridge.events.tigger('%@','%@');";
+
+    /**
      * 读取本地页面
      *
      * @param url

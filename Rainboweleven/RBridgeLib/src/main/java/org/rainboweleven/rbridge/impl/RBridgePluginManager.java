@@ -2,19 +2,14 @@ package org.rainboweleven.rbridge.impl;
 
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
+import android.os.Handler;
+import android.os.Looper;
 
-import org.json.JSONObject;
-import org.rainboweleven.rbridge.core.RBridgeAsyncPlugin;
-import org.rainboweleven.rbridge.core.RBridgeAsyncPlugin.OnCallPluginListener;
-import org.rainboweleven.rbridge.core.RBridgePlugin;
 import org.rainboweleven.rbridge.core.RWebViewInterface;
 import org.rainboweleven.rbridge.core.RWebViewInterface.OnCallJsResultListener;
-import org.rainboweleven.rbridge.impl.object_plugin.EventAsyncPlugin;
-import org.rainboweleven.rbridge.impl.object_plugin.EventPlugin;
-import org.rainboweleven.rbridge.impl.string_plugin.StorePlugin;
-import org.rainboweleven.rbridge.util.GenericUtil;
+import org.rainboweleven.rbridge.core.RWebkitPlugin;
+import org.rainboweleven.rbridge.impl.plugin.StorePlugin;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,16 +24,13 @@ import java.util.Map;
  */
 public class RBridgePluginManager {
 
-    // 同步插件
-    private Map<String, RBridgePlugin<?, ?>> mPluginMap = new HashMap<>();
-    // 异步插件
-    private Map<String, RBridgeAsyncPlugin<?, ?>> mPluginAsyncMap = new HashMap<>();
-
+    // 插件
+    private Map<String, RWebkitPlugin> mPluginMap = new HashMap<>();
     // 是否可用
     private boolean mIsRWebViewReady = false;
     // 待运行的任务
     private List<Runnable> mRunnables = new ArrayList<>();
-
+    // 单例
     private static RBridgePluginManager sInstance;
 
     /**
@@ -73,23 +65,16 @@ public class RBridgePluginManager {
     // 初始化sdk插件
     private void initPlugins(RWebViewInterface webViewInterface) {
         // 存储插件，传递String参数，返回String结果
-        RBridgePlugin stringStorePlugin = new StorePlugin(webViewInterface.context());
+        RWebkitPlugin storePlugin = new StorePlugin(webViewInterface.context());
         String module = StorePlugin.MODULE_NAME;
-        register(webViewInterface, module, StorePlugin.METHOD_SET_VALUE, stringStorePlugin);
-        register(webViewInterface, module, StorePlugin.METHOD_GET_VALUE, stringStorePlugin);
-        register(webViewInterface, module, StorePlugin.METHOD_GET_ALL, stringStorePlugin);
-        register(webViewInterface, module, StorePlugin.METHOD_REMOVE, stringStorePlugin);
-        register(webViewInterface, module, StorePlugin.METHOD_REMOVE_ALL, stringStorePlugin);
-    }
+        register(webViewInterface, module, StorePlugin.METHOD_SET_VALUE, storePlugin);
+        register(webViewInterface, module, StorePlugin.METHOD_GET_VALUE, storePlugin);
+        register(webViewInterface, module, StorePlugin.METHOD_GET_ALL, storePlugin);
+        register(webViewInterface, module, StorePlugin.METHOD_REMOVE, storePlugin);
+        register(webViewInterface, module, StorePlugin.METHOD_REMOVE_ALL, storePlugin);
+        // 网络插件
 
-    // 初始化sdk事件
-    private void initEvents(RWebViewInterface webViewInterface) {
-        // 事件插件
-        EventAsyncPlugin eventAsyncPlugin = new EventAsyncPlugin();
-        EventPlugin eventPlugin = new EventPlugin();
-        register(webViewInterface, EventAsyncPlugin.MODULE_NAME, EventAsyncPlugin.METHOD_ON, eventAsyncPlugin);
-        register(webViewInterface, EventPlugin.MODULE_NAME, EventPlugin.METHOD_OFF, eventPlugin);
-        register(webViewInterface, EventPlugin.MODULE_NAME, EventPlugin.METHOD_SEND, eventPlugin);
+        // 版本插件
     }
 
     // WebView已经初始化好了
@@ -99,7 +84,6 @@ public class RBridgePluginManager {
         }
         initScript(webViewInterface);
         initPlugins(webViewInterface);
-        initEvents(webViewInterface);
         mIsRWebViewReady = true;
         if (!mRunnables.isEmpty()) {
             for (Runnable runnable : mRunnables) {
@@ -110,9 +94,6 @@ public class RBridgePluginManager {
             }
         }
         mRunnables.clear();
-        // 发送sdk ready事件
-        String script = String.format(RWebViewInterface.CALL_SEND_DOCUMENT_EVENT, "deviceready");
-        webViewInterface.evaluateJavascript(script, null);
     }
 
     // WebView未初始化好了
@@ -123,7 +104,7 @@ public class RBridgePluginManager {
 
     // 注册插件
     public void register(final RWebViewInterface webViewInterface, final String module, final String method, final
-    RBridgePlugin<?, ?> plugin) {
+    RWebkitPlugin plugin) {
         if (webViewInterface == null) {
             return;
         }
@@ -152,154 +133,35 @@ public class RBridgePluginManager {
         }
     }
 
-    // 注册异步插件
-    public void register(final RWebViewInterface webViewInterface, final String module, final String method, final
-    RBridgeAsyncPlugin<?, ?> plugin) {
-        if (webViewInterface == null) {
-            return;
-        }
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                if (!mIsRWebViewReady) {
-                    return;
-                }
-                // 生成 window.jsBridge.module.method(params, callback)
-                webViewInterface.evaluateJavascript(plugin.onGetCreatePluginScript(module, method), new
-                        OnCallJsResultListener<String>() {
-                    @Override
-                    public void onCallJsResult(String result) {
-                        // 插件存储
-                        String key = getKey(module, method);
-                        mPluginAsyncMap.put(key, plugin);
-                    }
-                });
-            }
-        };
-        if (mIsRWebViewReady) {
-            runnable.run();
-        } else {
-            mRunnables.add(runnable);
-        }
-    }
-
-    // 运行本地插件
-    public String runNativePlugin(String module, String method, String params) {
-        String key = getKey(module, method);
-        RBridgePlugin<?, ?> plugin = mPluginMap.get(key);
-        try {
-            Type paramsType = GenericUtil.getGenericParameterType(plugin, "mSelf", 0);
-            Type resultType = GenericUtil.getGenericParameterType(plugin, "mSelf", 1);
-            if (paramsType != null && resultType != null && paramsType instanceof Class && resultType instanceof
-                    Class) {
-                Class paramsClass = (Class) paramsType;
-                Class resultClass = (Class) resultType;
-                // 传递的参数为JSONObject类型，返回的结果为PluginResult类型
-                if (paramsClass == JSONObject.class && resultClass == PluginResult.class) {
-                    RBridgePlugin<JSONObject, PluginResult> actualTypePlugin = (RBridgePlugin<JSONObject,
-                            PluginResult>) plugin;
-                    JSONObject actualTypeParams = new JSONObject(params);
-                    PluginResult pluginResult = actualTypePlugin.onPluginCalled(module, method, actualTypeParams);
-                    return pluginResult.toJsonString();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "";
-        }
-        // 默认以字符串类型处理
-        RBridgePlugin<String, String> actualTypePlugin = (RBridgePlugin<String, String>) plugin;
-        return actualTypePlugin.onPluginCalled(module, method, params);
-    }
-
     // 运行本地异步插件
-    public void runNativePlugin(final RWebViewInterface webViewInterface, String module, String method, String
-            params, final String jsCallback) {
+    public String runNativePlugin(final RWebViewInterface webViewInterface, final String module,final String method,final String
+            params,final String jsCallback) {
         String key = getKey(module, method);
-        RBridgeAsyncPlugin<?, ?> plugin = mPluginAsyncMap.get(key);
-        boolean handled = false;
-        try {
-            Type paramsType = GenericUtil.getGenericParameterType(plugin, "mSelf", 0);
-            Type resultType = GenericUtil.getGenericParameterType(plugin, "mSelf", 1);
-            if (paramsType != null && resultType != null && paramsType instanceof Class && resultType instanceof
-                    Class) {
-                Class paramsClass = (Class) paramsType;
-                Class resultClass = (Class) resultType;
-                // 传递的参数为JSONObject类型，返回的结果为PluginResult类型
-                if (paramsClass == JSONObject.class && resultClass == PluginResult.class) {
-                    RBridgeAsyncPlugin<JSONObject, PluginResult> actualTypePlugin = (RBridgeAsyncPlugin<JSONObject,
-                            PluginResult>) plugin;
-                    JSONObject actualTypeParams = new JSONObject(params);
-                    OnCallPluginListener<PluginResult> actualTypeListener = new OnCallPluginListener<PluginResult>() {
-                        @Override
-                        public void onCallPluginFinish() {
-                            RBridgePluginManager.this.onCallPluginFinish(webViewInterface, jsCallback);
-                        }
-
-                        @Override
-                        public void onCallPluginResult(PluginResult pluginResult) {
-                            String result = "";
-                            if (pluginResult != null) {
-                                result = pluginResult.toJsonString();
+        final RWebkitPlugin actualTypePlugin = mPluginMap.get(key);
+        //没有callback 异步
+        if (jsCallback == null){
+            return actualTypePlugin.onPluginCalled(module, method, params);
+        }else{
+            Handler mainHandler = new Handler(Looper.getMainLooper());
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (actualTypePlugin != null) {
+                        actualTypePlugin.listener = new RWebkitPlugin.OnCallPluginListener() {
+                            @Override
+                            public void onCallPluginResult(String result) {
+                                RBridgePluginManager.this.onCallPluginResult(webViewInterface, result, jsCallback);
                             }
-                            RBridgePluginManager.this.onCallPluginResult(webViewInterface, result, jsCallback);
-                        }
-                    };
-                    actualTypePlugin.onPluginCalled(module, method, actualTypeParams, actualTypeListener);
-                    handled = true;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            RBridgePluginManager.this.onCallPluginResult(webViewInterface, "", jsCallback);
-            RBridgePluginManager.this.onCallPluginFinish(webViewInterface, jsCallback);
-            handled = true;
-        }
-        // 默认以字符串类型处理
-        if (!handled) {
-            RBridgeAsyncPlugin<String, String> actualTypePlugin = (RBridgeAsyncPlugin<String, String>) plugin;
-            OnCallPluginListener<String> listener = new OnCallPluginListener<String>() {
-                @Override
-                public void onCallPluginFinish() {
-                    RBridgePluginManager.this.onCallPluginFinish(webViewInterface, jsCallback);
-                }
+                        };
+                        actualTypePlugin.action(module, method, params);
+                    } else {
+                        // 没有找到插件
+                        RBridgePluginManager.this.onCallPluginResult(webViewInterface, "插件没有找到", jsCallback);
+                    }
 
-                @Override
-                public void onCallPluginResult(String result) {
-                    RBridgePluginManager.this.onCallPluginResult(webViewInterface, result, jsCallback);
                 }
-            };
-            if (actualTypePlugin != null) {
-                actualTypePlugin.onPluginCalled(module, method, params, listener);
-            }
-            // 没有找到插件
-            else {
-                RBridgePluginManager.this.onCallPluginResult(webViewInterface, "插件没有找到", jsCallback);
-                RBridgePluginManager.this.onCallPluginFinish(webViewInterface, jsCallback);
-            }
-        }
-    }
-
-    // 完成回调
-    private void onCallPluginFinish(final RWebViewInterface webViewInterface, final String jsCallback) {
-        if (webViewInterface == null) {
-            return;
-        }
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                if (!mIsRWebViewReady) {
-                    return;
-                }
-                // 删除对应的JS callback
-                String script = String.format(RWebViewInterface.DELETE_JS_BRIDGE_CALLBACK, jsCallback);
-                webViewInterface.evaluateJavascript(script, null);
-            }
-        };
-        if (mIsRWebViewReady) {
-            runnable.run();
-        } else {
-            mRunnables.add(runnable);
+            });
+            return "";
         }
     }
 
@@ -316,11 +178,16 @@ public class RBridgePluginManager {
                     return;
                 }
                 // 异步JS回调
-                String script = String.format(RWebViewInterface.CALL_JS_BRIDGE_CALLBACK, jsCallback, result);
+                String callScript = String.format(RWebViewInterface.CALL_JS_BRIDGE_CALLBACK, jsCallback, result);
+                // 删除对应的JS callback
+                String delScript = String.format(RWebViewInterface.DELETE_JS_BRIDGE_CALLBACK, jsCallback);
+                //javascript:
+                String script =  String.format("javascript:%s%s", callScript,delScript);
                 webViewInterface.evaluateJavascript(script, null);
             }
         };
         if (mIsRWebViewReady) {
+            //可以执行优化 不要频繁调用js
             runnable.run();
         } else {
             mRunnables.add(runnable);

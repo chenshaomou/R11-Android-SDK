@@ -17,10 +17,9 @@ import android.webkit.WebViewClient;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.rainboweleven.rbridge.core.RBridgeAsyncPlugin;
-import org.rainboweleven.rbridge.core.RBridgePlugin;
 import org.rainboweleven.rbridge.core.RNativeInterface;
 import org.rainboweleven.rbridge.core.RWebViewInterface;
+import org.rainboweleven.rbridge.core.RWebkitPlugin;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.CountDownLatch;
@@ -183,13 +182,7 @@ public class RSystemWebView extends WebView implements RWebViewInterface, RNativ
     }
 
     @Override
-    public void register(String module, String method, RBridgePlugin<?, ?> plugin) {
-        // 交给插件管理器去注册
-        RBridgePluginManager.getInstance().register(this, module, method, plugin);
-    }
-
-    @Override
-    public void register(String module, String method, RBridgeAsyncPlugin<?, ?> plugin) {
+    public void register(String module, String method, RWebkitPlugin plugin) {
         // 交给插件管理器去注册
         RBridgePluginManager.getInstance().register(this, module, method, plugin);
     }
@@ -198,6 +191,7 @@ public class RSystemWebView extends WebView implements RWebViewInterface, RNativ
     public Context context() {
         return getContext();
     }
+
 
     @Override
     protected void onDetachedFromWindow() {
@@ -221,16 +215,7 @@ public class RSystemWebView extends WebView implements RWebViewInterface, RNativ
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        // 同步
-        if (TextUtils.isEmpty(jsCallback)) {
-            // 交给插件管理器去执行
-            return RBridgePluginManager.getInstance().runNativePlugin(module, method, params);
-        }
-        // 异步
-        else {
-            // 交给插件管理器去执行
-            RBridgePluginManager.getInstance().runNativePlugin(this, module, method, params, jsCallback);
-            return "";
-        }
+
+        return RBridgePluginManager.getInstance().runNativePlugin(this, module, method, params, jsCallback);
     }
 }

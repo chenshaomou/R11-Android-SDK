@@ -1,11 +1,11 @@
-package org.rainboweleven.rbridge.impl.string_plugin;
+package org.rainboweleven.rbridge.impl.plugin;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
 import org.json.JSONObject;
-import org.rainboweleven.rbridge.impl.base_plugin.BaseStringPlugin;
+import org.rainboweleven.rbridge.core.RWebkitPlugin;
 
 import java.util.Map;
 
@@ -16,7 +16,7 @@ import java.util.Map;
  * @datetime 2017-12-17 21:23 GMT+8
  * @email 411086563@qq.com
  */
-public class StorePlugin extends BaseStringPlugin {
+public class StorePlugin extends RWebkitPlugin {
 
     public static final String MODULE_NAME = "store";
     public static final String METHOD_GET_VALUE = "getValue";
@@ -35,7 +35,7 @@ public class StorePlugin extends BaseStringPlugin {
     }
 
     @Override
-    public String onPluginCalled(String module, String method, String params) {
+    public String onPluginCalled(String module, String method, String params,OnCallPluginListener listener) {
         if (!MODULE_NAME.equals(module)) {
             return null;
         }
@@ -74,18 +74,5 @@ public class StorePlugin extends BaseStringPlugin {
             e.printStackTrace();
         }
         return null;
-    }
-
-    // Demo测试用
-    private String forTest(String module, String method, String params) {
-        // Demo测试
-        String result = "StorePlugin(StringPlugin)被调用";
-        try {
-            result = result + "，module：" + module + "，method：" + method + "，params：" + params;
-            Log.e("andy", result);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return result;
     }
 }

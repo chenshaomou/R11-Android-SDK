@@ -1,9 +1,7 @@
-package org.rainboweleven.rbridge.impl.string_plugin;
-
-import android.util.Log;
+package org.rainboweleven.rbridge.impl.plugin;
 
 import org.json.JSONObject;
-import org.rainboweleven.rbridge.impl.base_plugin.BaseStringAsyncPlugin;
+import org.rainboweleven.rbridge.core.RWebkitPlugin;
 
 import java.io.IOException;
 
@@ -22,17 +20,16 @@ import okhttp3.Response;
  * @datetime 2017-12-20 21:52 GMT+8
  * @email 411086563@qq.com
  */
-public class NetworkPlugin extends BaseStringAsyncPlugin {
+public class NetworkPlugin extends RWebkitPlugin {
 
     public static final String MODULE_NAME = "network";
     public static final String METHOD_GET = "get";
     public static final String METHOD_POST = "post";
 
     @Override
-    public void onPluginCalled(String module, String method, String params, final OnCallPluginListener<String>
-            listener) {
+    public String onPluginCalled(String module, String method, String params) {
         if (!MODULE_NAME.equals(module)) {
-            return;
+            return "";
         }
         try {
             JSONObject jsonParams = new JSONObject(params);
@@ -58,7 +55,6 @@ public class NetworkPlugin extends BaseStringAsyncPlugin {
                     if (listener != null) {
                         // 返回异常信息
                         listener.onCallPluginResult("异常,e:" + e.getMessage());
-                        listener.onCallPluginFinish();
                     }
                 }
 
@@ -67,7 +63,6 @@ public class NetworkPlugin extends BaseStringAsyncPlugin {
                     if (listener != null) {
                         // 返回数据
                         listener.onCallPluginResult(response.body().string());
-                        listener.onCallPluginFinish();
                     }
                 }
             });
@@ -76,23 +71,8 @@ public class NetworkPlugin extends BaseStringAsyncPlugin {
             if (listener != null) {
                 // 返回异常信息
                 listener.onCallPluginResult("异常,e:" + e.getMessage());
-                listener.onCallPluginFinish();
             }
         }
-    }
-
-    // Demo测试用
-    private void forTest(String module, String method, String params, final OnCallPluginListener<String> listener) {
-        String result = "NetworkPlugin(StringPlugin)被调用";
-        try {
-            result = result + "，module：" + module + "，method：" + method + "，params：" + params;
-            Log.e("andy", result);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (listener != null) {
-            listener.onCallPluginResult(result);
-            listener.onCallPluginFinish();
-        }
+        return RWebkitPlugin.RWEBKIT_PLUGIN_ASYNC_RUNNING;
     }
 }

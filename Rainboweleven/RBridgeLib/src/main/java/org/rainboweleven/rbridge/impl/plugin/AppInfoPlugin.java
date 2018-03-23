@@ -1,11 +1,11 @@
-package org.rainboweleven.rbridge.impl.string_plugin;
+package org.rainboweleven.rbridge.impl.plugin;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 
-import org.rainboweleven.rbridge.impl.base_plugin.BaseStringPlugin;
+import org.rainboweleven.rbridge.core.RWebkitPlugin;
 import org.rainboweleven.rbridge.util.CreateHtmlPluginUtil;
 
 /**
@@ -15,7 +15,7 @@ import org.rainboweleven.rbridge.util.CreateHtmlPluginUtil;
  * @datetime 2018-01-04 09:42 GMT+8
  * @email 411086563@qq.com
  */
-public class AppInfoPlugin extends BaseStringPlugin {
+public class AppInfoPlugin extends RWebkitPlugin {
 
     public static final String MODULE_NAME = "appInfo";
     public static final String METHOD_VERSION = "version";
@@ -27,7 +27,8 @@ public class AppInfoPlugin extends BaseStringPlugin {
     }
 
     @Override
-    public String onPluginCalled(String module, String method, String params) {
+    public String onPluginCalled(String module, String method, String params,OnCallPluginListener listener) {
+
         if (!MODULE_NAME.equals(module)) {
             return null;
         }
@@ -36,20 +37,6 @@ public class AppInfoPlugin extends BaseStringPlugin {
             return getAppVersionName(mContext);
         }
         return null;
-    }
-
-    @Override
-    public String onGetCreatePluginScript(String module, String method) {
-        if (!MODULE_NAME.equals(module)) {
-            return super.onGetCreatePluginScript(module, method);
-        }
-        // 获取版本号
-        if (METHOD_VERSION.equals(method)) {
-            // 生成window.jsBridge.$module.$method()
-            String function = "function (){return window.jsBridge.call('" + module + "','" + method + "',{})}";
-            return CreateHtmlPluginUtil.getCreatePluginScript(module, method, function);
-        }
-        return super.onGetCreatePluginScript(module, method);
     }
 
     // 获取APP版本号

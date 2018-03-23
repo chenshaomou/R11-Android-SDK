@@ -5,7 +5,6 @@ import android.text.TextUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.rainboweleven.rbridge.core.RBridgeAsyncPlugin;
-import org.rainboweleven.rbridge.core.RBridgePlugin;
 import org.rainboweleven.rbridge.core.RWebViewInterface;
 import org.rainboweleven.rbridge.core.RWebViewInterface.OnCallJsResultListener;
 import org.rainboweleven.rbridge.core.RWebViewInterface.OnEventReceivedListener;

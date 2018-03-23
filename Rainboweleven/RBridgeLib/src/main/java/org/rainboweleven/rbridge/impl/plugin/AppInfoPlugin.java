@@ -6,7 +6,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 
 import org.rainboweleven.rbridge.core.RWebkitPlugin;
-import org.rainboweleven.rbridge.util.CreateHtmlPluginUtil;
 
 /**
  * APP信息插件，传递String参数，返回String结果

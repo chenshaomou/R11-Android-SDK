@@ -1,7 +1,5 @@
 package org.rainboweleven.rbridge.core;
 
-import org.rainboweleven.rbridge.util.CreateHtmlPluginUtil;
-
 /**
  * 异步插件，传递String参数，返回String结果
  *
@@ -12,6 +10,11 @@ import org.rainboweleven.rbridge.util.CreateHtmlPluginUtil;
 public abstract class RWebkitPlugin {
 
     public static String RWEBKIT_PLUGIN_ASYNC_RUNNING = "RWEBKIT_PLUGIN_ASYNC_RUNNING";
+
+    /**
+     * 生成js方法代码
+     * */
+    String CREATE_JS_METHOD_FUNCTION = "window.jsBridge['module']=window.jsBridge['module']||{};Object.assign(window.jsBridge['module'],{'method':function(params,callback){if(arguments.length===0){return window.jsBridge.call('module','method',{})}if(arguments.length===1){return window.jsBridge.call('module','method',params)}if(arguments.length===2){window.jsBridge.call('module','method',params,callback)}}});Object.assign(window.jsBridge['module'],{'methodPromise':function(params){if(arguments.length===0){return window.jsBridge.promise('module','method',{})}if(arguments.length===1){return window.jsBridge.promise('module','method',params)}}});";
 
     public OnCallPluginListener listener;
     /**
@@ -45,7 +48,9 @@ public abstract class RWebkitPlugin {
      * @return
      */
     public String onGetCreatePluginScript(String module, String method) {
-        return CreateHtmlPluginUtil.getCreatePluginScript(module, method, null);
+
+        String script = CREATE_JS_METHOD_FUNCTION.replace("module",module).replace("method",method);
+        return script;
     }
 
     /**

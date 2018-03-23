@@ -30,7 +30,7 @@ public interface RWebViewInterface {
     /**
      * 调用jsBridge中的模块方法
      */
-    String CALL_JS_BRIDGE_MODULE_FUNCTION = "javascript:window.jsBridge.%s.%s('%s');";
+    String CALL_JS_BRIDGE_MODULE_FUNCTION = "javascript:window.jsBridge.func.%s.%s('%s');";
 
     /**
      * 读取本地页面
@@ -92,21 +92,5 @@ public interface RWebViewInterface {
          * @param result JS返回的结果
          */
         void onCallJsResult(JSRESULT result);
-    }
-
-    /**
-     * 事件监听器
-     *
-     * @param <PARAMS> 传递的事件
-     */
-    interface OnEventReceivedListener<PARAMS> {
-        /**
-         * 监听到事件
-         *
-         * @param module
-         * @param method
-         * @param params
-         */
-        void onEventReceived(String module, String method, PARAMS params);
     }
 }

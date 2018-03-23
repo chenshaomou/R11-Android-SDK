@@ -17,7 +17,6 @@ import android.webkit.WebViewClient;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.rainboweleven.rbridge.core.RNativeInterface;
 import org.rainboweleven.rbridge.core.RWebViewInterface;
 import org.rainboweleven.rbridge.core.RWebkitPlugin;
 
@@ -31,7 +30,7 @@ import java.util.concurrent.CountDownLatch;
  * @datetime 2017-12-12 21:43 GMT+8
  * @email 411086563@qq.com
  */
-public class RSystemWebView extends WebView implements RWebViewInterface, RNativeInterface {
+public class RSystemWebView extends WebView implements RWebViewInterface {
 
     public RSystemWebView(Context context) {
         super(context);
@@ -199,7 +198,7 @@ public class RSystemWebView extends WebView implements RWebViewInterface, RNativ
         super.onDetachedFromWindow();
     }
 
-    @Override
+
     @JavascriptInterface
     public String call(String request) {
         String module = null;

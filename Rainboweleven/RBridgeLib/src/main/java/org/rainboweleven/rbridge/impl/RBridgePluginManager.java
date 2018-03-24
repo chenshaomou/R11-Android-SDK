@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * 插件管理器
@@ -59,7 +60,8 @@ public class RBridgePluginManager {
         if (VERSION.SDK_INT < VERSION_CODES.KITKAT) {
             webViewType = "ADWKWV";
         }
-        String script = String.format(RWebViewInterface.INIT_SCRIPT, webViewType);
+        String webId = UUID.randomUUID().toString();
+        String script = String.format(RWebViewInterface.INIT_SCRIPT, webViewType,webId);
         webViewInterface.evaluateJavascript(script, null);
     }
 

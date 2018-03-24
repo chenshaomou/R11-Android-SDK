@@ -8,9 +8,6 @@ package org.rainboweleven.rbridge.core;
  * @email 411086563@qq.com
  */
 public abstract class RWebkitPlugin {
-
-    public static String RWEBKIT_PLUGIN_ASYNC_RUNNING = "RWEBKIT_PLUGIN_ASYNC_RUNNING";
-
     /**
      * 生成js方法代码
      * */

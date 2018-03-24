@@ -5,6 +5,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 
+import org.rainboweleven.rbridge.core.RPromise;
 import org.rainboweleven.rbridge.core.RWebkitPlugin;
 
 /**
@@ -26,16 +27,15 @@ public class AppInfoPlugin extends RWebkitPlugin {
     }
 
     @Override
-    public String onPluginCalled(String module, String method, String params,OnCallPluginListener listener) {
+    public void onPluginCalled(String module, String method, String params,RPromise promise) {
 
         if (!MODULE_NAME.equals(module)) {
-            return null;
+            return;
         }
         // 获取版本号
         if (METHOD_VERSION.equals(method)) {
-            return getAppVersionName(mContext);
+            promise.setResult(getAppVersionName(mContext));
         }
-        return null;
     }
 
     // 获取APP版本号

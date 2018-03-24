@@ -14,17 +14,7 @@ public abstract class RWebkitPlugin {
     /**
      * 生成js方法代码
      * */
-    String CREATE_JS_METHOD_FUNCTION = "window.jsBridge['module']=window.jsBridge['module']||{};Object.assign(window.jsBridge['module'],{'method':function(params,callback){if(arguments.length===0){return window.jsBridge.call('module','method',{})}if(arguments.length===1){return window.jsBridge.call('module','method',params)}if(arguments.length===2){window.jsBridge.call('module','method',params,callback)}}});Object.assign(window.jsBridge['module'],{'methodPromise':function(params){if(arguments.length===0){return window.jsBridge.promise('module','method',{})}if(arguments.length===1){return window.jsBridge.promise('module','method',params)}}});";
-
-    public OnCallPluginListener listener;
-    /**
-     *
-     * @param module
-     * @param method
-     * @param params
-     * @return
-     */
-    public abstract String onPluginCalled(String module, String method, String params);
+    public static String CREATE_JS_METHOD_FUNCTION = "window.jsBridge['module']=window.jsBridge['module']||{};Object.assign(window.jsBridge['module'],{'method':function(params,callback){if(arguments.length===0){return window.jsBridge.call('module','method',{})}if(arguments.length===1){return window.jsBridge.call('module','method',params)}if(arguments.length===2){window.jsBridge.call('module','method',params,callback)}}});Object.assign(window.jsBridge['module'],{'methodPromise':function(params){if(arguments.length===0){return window.jsBridge.promise('module','method',{})}if(arguments.length===1){return window.jsBridge.promise('module','method',params)}}});";
 
     /**
      *
@@ -33,12 +23,7 @@ public abstract class RWebkitPlugin {
      * @param params
      * @return
      */
-    public void action(String module, String method, String params){
-        String result = onPluginCalled(module, method, params);
-        if (listener != null && result != RWebkitPlugin.RWEBKIT_PLUGIN_ASYNC_RUNNING){
-            listener.onCallPluginResult(result);
-        }
-    }
+    public abstract void onPluginCalled(String module, String method, String params,RPromise promise);
 
 
     /**
@@ -51,18 +36,5 @@ public abstract class RWebkitPlugin {
 
         String script = CREATE_JS_METHOD_FUNCTION.replace("module",module).replace("method",method);
         return script;
-    }
-
-    /**
-     * 调用native插件方法监听器
-     */
-    public interface OnCallPluginListener {
-
-        /**
-         * 调用native插件方法传递回调数据
-         *
-         * @param result
-         */
-        void onCallPluginResult(String result);
     }
 }

@@ -5,6 +5,7 @@ import android.os.Build.VERSION_CODES;
 import android.os.Handler;
 import android.os.Looper;
 
+import org.rainboweleven.rbridge.core.RPromise;
 import org.rainboweleven.rbridge.core.RWebViewInterface;
 import org.rainboweleven.rbridge.core.RWebViewInterface.OnCallJsResultListener;
 import org.rainboweleven.rbridge.core.RWebkitPlugin;
@@ -138,22 +139,24 @@ public class RBridgePluginManager {
             params,final String jsCallback) {
         String key = getKey(module, method);
         final RWebkitPlugin actualTypePlugin = mPluginMap.get(key);
+        final RPromise p = new RPromise();
         //没有callback 异步
         if (jsCallback == null){
-            return actualTypePlugin.onPluginCalled(module, method, params);
+            actualTypePlugin.onPluginCalled(module, method, params,p);
+            return p.getResult();
         }else{
             Handler mainHandler = new Handler(Looper.getMainLooper());
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
                     if (actualTypePlugin != null) {
-                        actualTypePlugin.listener = new RWebkitPlugin.OnCallPluginListener() {
+                        p.setListener(new RPromise.OnCallPluginListener() {
                             @Override
                             public void onCallPluginResult(String result) {
                                 RBridgePluginManager.this.onCallPluginResult(webViewInterface, result, jsCallback);
                             }
-                        };
-                        actualTypePlugin.action(module, method, params);
+                        });
+                        actualTypePlugin.onPluginCalled(module, method, params,p);
                     } else {
                         // 没有找到插件
                         RBridgePluginManager.this.onCallPluginResult(webViewInterface, "插件没有找到", jsCallback);

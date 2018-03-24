@@ -1,6 +1,7 @@
 package org.rainboweleven.rbridge.impl.plugin;
 
 import org.json.JSONObject;
+import org.rainboweleven.rbridge.core.RPromise;
 import org.rainboweleven.rbridge.core.RWebkitPlugin;
 
 import java.io.IOException;
@@ -27,9 +28,10 @@ public class NetworkPlugin extends RWebkitPlugin {
     public static final String METHOD_POST = "post";
 
     @Override
-    public String onPluginCalled(String module, String method, String params) {
+    public void onPluginCalled(String module, String method, String params,final RPromise promise) {
+
         if (!MODULE_NAME.equals(module)) {
-            return "";
+            return ;
         }
         try {
             JSONObject jsonParams = new JSONObject(params);
@@ -52,27 +54,17 @@ public class NetworkPlugin extends RWebkitPlugin {
             okHttpClient.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
-                    if (listener != null) {
-                        // 返回异常信息
-                        listener.onCallPluginResult("异常,e:" + e.getMessage());
-                    }
+                    promise.setResult(e.getMessage());
                 }
 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
-                    if (listener != null) {
-                        // 返回数据
-                        listener.onCallPluginResult(response.body().string());
-                    }
+                    promise.setResult(response.body().string());
                 }
             });
         } catch (Exception e) {
             e.printStackTrace();
-            if (listener != null) {
-                // 返回异常信息
-                listener.onCallPluginResult("异常,e:" + e.getMessage());
-            }
+            promise.setResult(e.getMessage());
         }
-        return RWebkitPlugin.RWEBKIT_PLUGIN_ASYNC_RUNNING;
     }
 }

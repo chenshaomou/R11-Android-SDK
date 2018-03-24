@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import org.json.JSONObject;
+import org.rainboweleven.rbridge.core.RPromise;
 import org.rainboweleven.rbridge.core.RWebkitPlugin;
 
 import java.util.Map;
@@ -35,9 +36,10 @@ public class StorePlugin extends RWebkitPlugin {
     }
 
     @Override
-    public String onPluginCalled(String module, String method, String params,OnCallPluginListener listener) {
+    public void onPluginCalled(String module, String method, String params,RPromise promise) {
+
         if (!MODULE_NAME.equals(module)) {
-            return null;
+            return ;
         }
         try {
             JSONObject jsonParams = new JSONObject(params);
@@ -45,34 +47,34 @@ public class StorePlugin extends RWebkitPlugin {
             if (METHOD_GET_VALUE.equals(method)) {
                 String key = jsonParams.optString("key");
                 String value = mSharedPreferences.getString(key, null);
-                return value;
+                promise.setResult(value);
             }
             // 存储数据
             else if (METHOD_SET_VALUE.equals(method)) {
                 String key = jsonParams.optString("key");
                 String value = jsonParams.optString("value");
                 boolean success = mSharedPreferences.edit().putString(key, value).commit();
-                return success + "";
+                promise.setResult(success+"");
             }
             // 获取全部数据
             else if (METHOD_GET_ALL.equals(method)) {
                 Map<String, ?> results = mSharedPreferences.getAll();
-                return new JSONObject(results).toString();
+                String jstr = new JSONObject(results).toString();
+                promise.setResult(jstr);
             }
             // 移除
             else if (METHOD_REMOVE.equals(method)) {
                 String key = jsonParams.optString("key");
                 boolean success = mSharedPreferences.edit().remove(key).commit();
-                return success + "";
+                promise.setResult(success+"");
             }
             // 移除全部
             else if (METHOD_REMOVE_ALL.equals(method)) {
                 boolean success = mSharedPreferences.edit().clear().commit();
-                return success + "";
+                promise.setResult(success+"");
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
     }
 }

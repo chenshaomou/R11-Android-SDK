@@ -7,8 +7,12 @@ import android.os.Looper;
 
 import org.rainboweleven.rbridge.core.RPromise;
 import org.rainboweleven.rbridge.core.RWebViewInterface;
+import org.rainboweleven.rbridge.core.RWebViewInterface.EventObserver;
 import org.rainboweleven.rbridge.core.RWebViewInterface.OnCallJsResultListener;
 import org.rainboweleven.rbridge.core.RWebkitPlugin;
+import org.rainboweleven.rbridge.impl.plugin.AppInfoPlugin;
+import org.rainboweleven.rbridge.impl.plugin.EventsPlugin;
+import org.rainboweleven.rbridge.impl.plugin.NetworkPlugin;
 import org.rainboweleven.rbridge.impl.plugin.StorePlugin;
 
 import java.util.ArrayList;
@@ -26,67 +30,66 @@ import java.util.UUID;
  */
 public class RBridgePluginManager {
 
-    // 插件
+    // WebView
+    private RWebViewInterface mWebViewInterface;
+
+    // 所有插件
     private Map<String, RWebkitPlugin> mPluginMap = new HashMap<>();
-    // 是否可用
+    // WebView是否可用
     private boolean mIsRWebViewReady = false;
     // 待运行的任务
     private List<Runnable> mRunnables = new ArrayList<>();
-    // 单例
-    private static RBridgePluginManager sInstance;
+    // 事件插件
+    private EventsPlugin mEventsPlugin;
 
-    /**
-     * 获取单例
-     *
-     * @return
-     */
-    public static RBridgePluginManager getInstance() {
-        if (sInstance == null) {
-            synchronized (RBridgePluginManager.class) {
-                if (sInstance == null) {
-                    sInstance = new RBridgePluginManager();
-                }
-            }
-        }
-        return sInstance;
+    public RBridgePluginManager(RWebViewInterface webViewInterface) {
+        mWebViewInterface = webViewInterface;
     }
 
-    // 构造方法
-    private RBridgePluginManager() {
-    }
-
-    private void initScript(RWebViewInterface webViewInterface) {
+    // 初始化脚本
+    private void initScript() {
         String webViewType = "ADCRMWV";
         if (VERSION.SDK_INT < VERSION_CODES.KITKAT) {
             webViewType = "ADWKWV";
         }
         String webId = UUID.randomUUID().toString();
-        String script = String.format(RWebViewInterface.INIT_SCRIPT, webViewType,webId);
-        webViewInterface.evaluateJavascript(script, null);
+        String script = String.format(RWebViewInterface.INIT_SCRIPT, webViewType, webId);
+        mWebViewInterface.evaluateJavascript(script, null);
     }
 
     // 初始化sdk插件
-    private void initPlugins(RWebViewInterface webViewInterface) {
+    private void initPlugins() {
         // 存储插件，传递String参数，返回String结果
-        RWebkitPlugin storePlugin = new StorePlugin(webViewInterface.context());
-        String module = StorePlugin.MODULE_NAME;
-        register(webViewInterface, module, StorePlugin.METHOD_SET_VALUE, storePlugin);
-        register(webViewInterface, module, StorePlugin.METHOD_GET_VALUE, storePlugin);
-        register(webViewInterface, module, StorePlugin.METHOD_GET_ALL, storePlugin);
-        register(webViewInterface, module, StorePlugin.METHOD_REMOVE, storePlugin);
-        register(webViewInterface, module, StorePlugin.METHOD_REMOVE_ALL, storePlugin);
+        register(mWebViewInterface, StorePlugin.MODULE_NAME, StorePlugin.METHOD_SET_VALUE, new StorePlugin
+                (mWebViewInterface.context()));
+        register(mWebViewInterface, StorePlugin.MODULE_NAME, StorePlugin.METHOD_GET_VALUE, new StorePlugin
+                (mWebViewInterface.context()));
+        register(mWebViewInterface, StorePlugin.MODULE_NAME, StorePlugin.METHOD_GET_ALL, new StorePlugin
+                (mWebViewInterface.context()));
+        register(mWebViewInterface, StorePlugin.MODULE_NAME, StorePlugin.METHOD_REMOVE, new StorePlugin
+                (mWebViewInterface.context()));
+        register(mWebViewInterface, StorePlugin.MODULE_NAME, StorePlugin.METHOD_REMOVE_ALL, new StorePlugin
+                (mWebViewInterface.context()));
         // 网络插件
-
+        register(mWebViewInterface, NetworkPlugin.MODULE_NAME, NetworkPlugin.METHOD_GET, new NetworkPlugin());
+        register(mWebViewInterface, NetworkPlugin.MODULE_NAME, NetworkPlugin.METHOD_POST, new NetworkPlugin());
         // 版本插件
+        register(mWebViewInterface, AppInfoPlugin.MODULE_NAME, AppInfoPlugin.METHOD_VERSION, new AppInfoPlugin
+                (mWebViewInterface.context()));
+        // 事件插件
+        mEventsPlugin = new EventsPlugin();
+        register(mWebViewInterface, EventsPlugin.MODULE_NAME, EventsPlugin.SEND_EVENT, mEventsPlugin);
     }
 
-    // WebView已经初始化好了
-    public void onRWebViewReady(RWebViewInterface webViewInterface) {
+    /**
+     * WebView已经初始化好了
+     */
+    public void onRWebViewReady() {
         if (mIsRWebViewReady) {
             return;
         }
-        initScript(webViewInterface);
-        initPlugins(webViewInterface);
+        initScript();
+        initPlugins();
         mIsRWebViewReady = true;
         if (!mRunnables.isEmpty()) {
             for (Runnable runnable : mRunnables) {
@@ -99,9 +102,12 @@ public class RBridgePluginManager {
         mRunnables.clear();
     }
 
-    // WebView未初始化好了
-    public void onRWebViewNotReady(RWebViewInterface webViewInterface) {
-        // TODO 移除注册的插件
+    /**
+     * WebView未初始化
+     */
+    public void onRWebViewNotReady() {
+        // 移除注册的插件
+        mPluginMap.clear(); // FIXME 只是情况插件可能存在内存泄漏，应该给插件开一个onDestroy方法
         mIsRWebViewReady = false;
     }
 
@@ -119,7 +125,7 @@ public class RBridgePluginManager {
                 }
                 // 生成 window.jsBridge.module.method(params, callback)
                 webViewInterface.evaluateJavascript(plugin.onGetCreatePluginScript(module, method), new
-                        OnCallJsResultListener<String>() {
+                        OnCallJsResultListener() {
                     @Override
                     public void onCallJsResult(String result) {
                         // 插件存储
@@ -137,16 +143,16 @@ public class RBridgePluginManager {
     }
 
     // 运行本地异步插件
-    public String runNativePlugin(final RWebViewInterface webViewInterface, final String module,final String method,final String
-            params,final String jsCallback) {
+    public String runNativePlugin(final RWebViewInterface webViewInterface, final String module, final String method,
+                                  final String params, final String jsCallback) {
         String key = getKey(module, method);
         final RWebkitPlugin actualTypePlugin = mPluginMap.get(key);
         final RPromise p = new RPromise();
         //没有callback 异步
-        if (jsCallback == null){
-            actualTypePlugin.onPluginCalled(module, method, params,p);
+        if (jsCallback == null) {
+            actualTypePlugin.onPluginCalled(module, method, params, p);
             return p.getResult();
-        }else{
+        } else {
             Handler mainHandler = new Handler(Looper.getMainLooper());
             mainHandler.post(new Runnable() {
                 @Override
@@ -158,7 +164,7 @@ public class RBridgePluginManager {
                                 RBridgePluginManager.this.onCallPluginResult(webViewInterface, result, jsCallback);
                             }
                         });
-                        actualTypePlugin.onPluginCalled(module, method, params,p);
+                        actualTypePlugin.onPluginCalled(module, method, params, p);
                     } else {
                         // 没有找到插件
                         RBridgePluginManager.this.onCallPluginResult(webViewInterface, "插件没有找到", jsCallback);
@@ -186,8 +192,8 @@ public class RBridgePluginManager {
                 String callScript = String.format(RWebViewInterface.CALL_JS_BRIDGE_CALLBACK, jsCallback, result);
                 // 删除对应的JS callback
                 String delScript = String.format(RWebViewInterface.DELETE_JS_BRIDGE_CALLBACK, jsCallback);
-                //javascript:
-                String script =  String.format("javascript:%s%s", callScript,delScript);
+                // javascript:
+                String script = String.format("javascript:%s%s", callScript, delScript);
                 webViewInterface.evaluateJavascript(script, null);
             }
         };
@@ -197,6 +203,32 @@ public class RBridgePluginManager {
         } else {
             mRunnables.add(runnable);
         }
+    }
+
+    /**
+     * 监听来自JS的事件
+     *
+     * @param eventName
+     * @param observer
+     */
+    public void on(String eventName, EventObserver observer) {
+        if (mEventsPlugin == null) {
+            return;
+        }
+        mEventsPlugin.addObserver(eventName, observer);
+    }
+
+    /**
+     * 解除监听来自JS的事件
+     *
+     * @param eventName
+     * @param observer
+     */
+    public void off(String eventName, EventObserver observer) {
+        if (mEventsPlugin == null) {
+            return;
+        }
+        mEventsPlugin.removeObserver(eventName, observer);
     }
 
     // 获取插件的key

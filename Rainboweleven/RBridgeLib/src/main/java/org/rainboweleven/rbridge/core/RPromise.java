@@ -3,29 +3,33 @@ package org.rainboweleven.rbridge.core;
 /**
  * Created by chenshaomou on 24/03/2018.
  */
-
 public class RPromise {
-
-    private String result = null;
-    private OnCallPluginListener listener = null;
+    /**
+     * 执行结果
+     */
+    private String mResult = null;
+    /**
+     * 插件监听器，跟H5的callbackName绑定
+     */
+    private OnCallPluginListener mListener = null;
 
     public OnCallPluginListener getListener() {
-        return listener;
+        return mListener;
     }
 
     public void setListener(OnCallPluginListener listener) {
-        this.listener = listener;
+        mListener = listener;
     }
 
     public String getResult() {
-        return result;
+        return mResult;
     }
 
     public void setResult(String result) {
-        if (this.listener != null){
-            listener.onCallPluginResult(result);
+        if (mListener != null) {
+            mListener.onCallPluginResult(result);
         }
-        this.result = result;
+        mResult = result;
     }
 
     /**

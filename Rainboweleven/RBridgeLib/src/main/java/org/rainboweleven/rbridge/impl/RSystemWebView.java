@@ -1,8 +1,6 @@
 package org.rainboweleven.rbridge.impl;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
@@ -23,16 +21,20 @@ import org.rainboweleven.rbridge.core.RWebViewInterface;
 import org.rainboweleven.rbridge.core.RWebkitPlugin;
 
 import java.lang.reflect.Method;
-import java.util.concurrent.CountDownLatch;
 
 /**
- * 系统自带WebView实现，支持传递参数为JSONObject类型，返回参数为PluginResult的插件
+ * 系统自带WebView实现
  *
  * @author andy(Andy)
  * @datetime 2017-12-12 21:43 GMT+8
  * @email 411086563@qq.com
  */
 public class RSystemWebView extends WebView implements RWebViewInterface {
+
+    // 插件管理器
+    private RBridgePluginManager mPluginManager = new RBridgePluginManager(this);
+    // 系统事件监听器
+    private SystemEventsReceiver mSystemEventsReceiver = new SystemEventsReceiver(this);
 
     public RSystemWebView(Context context) {
         super(context);
@@ -106,6 +108,8 @@ public class RSystemWebView extends WebView implements RWebViewInterface {
             settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         }
         settings.setUseWideViewPort(true);
+        setWebViewClient(new WebViewClient());
+
         setWebChromeClient(new WebChromeClient() {
             @Override
             public void onReceivedTitle(WebView view, String title) {
@@ -114,39 +118,18 @@ public class RSystemWebView extends WebView implements RWebViewInterface {
                 postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        RBridgePluginManager.getInstance().onRWebViewReady(RSystemWebView.this);
+                        // WebView已准备好了
+                        // 插件管理器可以干活了
+                        mPluginManager.onRWebViewReady();
+                        // 系统事件接收器可以干活了
+                        mSystemEventsReceiver.onRWebViewReady();
                     }
                 }, 1000);
             }
         });
-        setWebViewClient(new WebViewClient());
+        // 绑定nativeBridge到JS的window上，主要是暴露当前类的call方法给JS调用
         addJavascriptInterface(this, "nativeBridge");
-
-
-        /**
-         * 广播机制
-         * */
-        broadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                // 第一个是事件的名称 要跟iOS 做统一处理 ， 第二哥参数是 要传给js 事件的参数
-                String script = String .format(RWebViewInterface.CALL_JS_BRIDGE_EVENT_TIGGER,intent.getAction(),intent.getStringExtra("params"));
-                RSystemWebView.this.evaluateJavascript(script);
-            }
-        };
-
-        // 注册广播 filter 要排除自己的广播
-        this.context().registerReceiver(broadcastReceiver,null);
-
-        // 注销广播
-        if(broadcastReceiver!=null){
-            this.context().unregisterReceiver(broadcastReceiver);
-        }
-
     }
-
-    private BroadcastReceiver broadcastReceiver;
-
 
     @Override
     public void loadRemoteURL(String url, String hash) {
@@ -158,31 +141,12 @@ public class RSystemWebView extends WebView implements RWebViewInterface {
     }
 
     @Override
-    public String evaluateJavascript(String script) {
-        final String[] syncResult = {null};
-        final CountDownLatch latch = new CountDownLatch(1);
-        evaluateJavascript(script, new OnCallJsResultListener<String>() {
-            @Override
-            public void onCallJsResult(String result) {
-                syncResult[0] = result;
-                latch.countDown();
-            }
-        });
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return syncResult[0];
-    }
-
-    @Override
     public void loadLocalURL(String url, String hash) {
         loadRemoteURL(url, hash);
     }
 
     @Override
-    public void evaluateJavascript(final String script, final OnCallJsResultListener<String> listener) {
+    public void evaluateJavascript(final String script, final OnCallJsResultListener listener) {
         // Runnable
         Runnable runnable = new Runnable() {
             @Override
@@ -210,7 +174,23 @@ public class RSystemWebView extends WebView implements RWebViewInterface {
     @Override
     public void register(String module, String method, RWebkitPlugin plugin) {
         // 交给插件管理器去注册
-        RBridgePluginManager.getInstance().register(this, module, method, plugin);
+        mPluginManager.register(this, module, method, plugin);
+    }
+
+    @Override
+    public void on(String eventName, EventObserver observer) {
+        mPluginManager.on(eventName, observer);
+    }
+
+    @Override
+    public void off(String eventName, EventObserver observer) {
+        mPluginManager.off(eventName, observer);
+    }
+
+    @Override
+    public void send(String eventName, String params) {
+        String script = String.format(RWebViewInterface.CALL_JS_BRIDGE_EVENT_TIGGER, eventName, params);
+        evaluateJavascript(script, (OnCallJsResultListener) null);
     }
 
     @Override
@@ -218,13 +198,14 @@ public class RSystemWebView extends WebView implements RWebViewInterface {
         return getContext();
     }
 
-
     @Override
     protected void onDetachedFromWindow() {
-        RBridgePluginManager.getInstance().onRWebViewNotReady(this);
+        // 通知插件管理器不能执行插件了
+        mPluginManager.onRWebViewNotReady();
+        // 通知系统事件接收器不能接收事件了
+        mSystemEventsReceiver.onRWebViewNotReady();
         super.onDetachedFromWindow();
     }
-
 
     @JavascriptInterface
     public String call(String request) {
@@ -241,7 +222,6 @@ public class RSystemWebView extends WebView implements RWebViewInterface {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-        return RBridgePluginManager.getInstance().runNativePlugin(this, module, method, params, jsCallback);
+        return mPluginManager.runNativePlugin(this, module, method, params, jsCallback);
     }
 }

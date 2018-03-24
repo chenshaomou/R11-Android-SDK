@@ -15,7 +15,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
- * 网络插件，传递String参数，返回String结果
+ * 网络插件
  *
  * @author andy(Andy)
  * @datetime 2017-12-20 21:52 GMT+8
@@ -28,10 +28,9 @@ public class NetworkPlugin extends RWebkitPlugin {
     public static final String METHOD_POST = "post";
 
     @Override
-    public void onPluginCalled(String module, String method, String params,final RPromise promise) {
-
+    public void onPluginCalled(String module, String method, String params, final RPromise promise) {
         if (!MODULE_NAME.equals(module)) {
-            return ;
+            return;
         }
         try {
             JSONObject jsonParams = new JSONObject(params);

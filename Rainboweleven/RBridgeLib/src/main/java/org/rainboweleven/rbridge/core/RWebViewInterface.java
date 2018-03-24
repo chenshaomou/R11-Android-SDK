@@ -31,14 +31,13 @@ public interface RWebViewInterface {
      * 调用jsBridge中的模块方法
      */
     String CALL_JS_BRIDGE_MODULE_FUNCTION = "javascript:window.jsBridge.func.%s.%s('%s');";
-
     /**
-     * 系统事件调用js
+     * 原生事件发给JS入口方法
      */
-    String CALL_JS_BRIDGE_EVENT_TIGGER = "javascript:window.jsBridge.events.tigger('%@','%@');";
+    String CALL_JS_BRIDGE_EVENT_TIGGER = "javascript:window.jsBridge.events.tigger('%s','%s');";
 
     /**
-     * 读取本地页面
+     * 加载本地页面
      *
      * @param url
      * @param hash
@@ -46,7 +45,7 @@ public interface RWebViewInterface {
     void loadLocalURL(String url, String hash);
 
     /**
-     * 读取远程页面
+     * 加载远程页面
      *
      * @param url
      * @param hash
@@ -54,19 +53,12 @@ public interface RWebViewInterface {
     void loadRemoteURL(String url, String hash);
 
     /**
-     * 同步执行JavaScript
-     *
-     * @param script
-     */
-    String evaluateJavascript(String script);
-
-    /**
-     * 异步执行JavaScript
+     * 异步执行JavaScript代码片段
      *
      * @param script
      * @param listener
      */
-    void evaluateJavascript(String script, OnCallJsResultListener<String> listener);
+    void evaluateJavascript(String script, OnCallJsResultListener listener);
 
     /**
      * 注册插件
@@ -78,6 +70,30 @@ public interface RWebViewInterface {
     void register(String module, String method, RWebkitPlugin plugin);
 
     /**
+     * 监听来自JS的事件
+     *
+     * @param eventName
+     * @param observer
+     */
+    void on(String eventName, EventObserver observer);
+
+    /**
+     * 解除监听来自JS的事件
+     *
+     * @param eventName
+     * @param observer
+     */
+    void off(String eventName, EventObserver observer);
+
+    /**
+     * 发送一个事件给JS
+     *
+     * @param eventName
+     * @param params
+     */
+    void send(String eventName, String params);
+
+    /**
      * Context
      *
      * @return
@@ -85,17 +101,28 @@ public interface RWebViewInterface {
     Context context();
 
     /**
-     * 调用JS结果监听器
-     *
-     * @param <JSRESULT> 执行JS返回的结果
+     * 执行JS插件(方法)结果监听器
      */
-    interface OnCallJsResultListener<JSRESULT> {
+    interface OnCallJsResultListener {
 
         /**
          * 调用JS结果
          *
          * @param result JS返回的结果
          */
-        void onCallJsResult(JSRESULT result);
+        void onCallJsResult(String result);
+    }
+
+    /**
+     * 事件观察者
+     */
+    interface EventObserver {
+        /**
+         * 观察到事件
+         *
+         * @param eventName
+         * @param params
+         */
+        void onObserver(String eventName, String params);
     }
 }

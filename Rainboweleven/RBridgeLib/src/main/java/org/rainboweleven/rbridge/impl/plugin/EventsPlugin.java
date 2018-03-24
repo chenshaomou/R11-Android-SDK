@@ -1,52 +1,84 @@
 package org.rainboweleven.rbridge.impl.plugin;
 
-import android.content.Context;
-import android.content.Intent;
-
 import org.json.JSONObject;
 import org.rainboweleven.rbridge.core.RPromise;
+import org.rainboweleven.rbridge.core.RWebViewInterface.EventObserver;
 import org.rainboweleven.rbridge.core.RWebkitPlugin;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by chenshaomou on 24/03/2018.
  */
-
 public class EventsPlugin extends RWebkitPlugin {
 
     public static final String MODULE_NAME = "events";
     public static final String SEND_EVENT = "send";
 
-    private Context mContext;
+    private Map<String, List<EventObserver>> mEventObserversMap;
 
-    public EventsPlugin(Context context) {
-        mContext = context.getApplicationContext();
+    public EventsPlugin() {
+        mEventObserversMap = new HashMap<>();
     }
 
     @Override
     public void onPluginCalled(String module, String method, String params, RPromise promise) {
-
         if (!MODULE_NAME.equals(module)) {
             return;
         }
-        // 获取版本号
+        // 发送事件
         if (SEND_EVENT.equals(method)) {
-
-            try{
-
+            try {
                 JSONObject jsonParams = new JSONObject(params);
-                String action = jsonParams.optString("eventName");
-                String _params = jsonParams.optString("params");
+                String eventName = jsonParams.optString("eventName");
+                String eventParams = jsonParams.optString("params");
 
-                Intent i = new Intent();
-                i.setAction(action);
-                i.putExtra("params",_params);
-                mContext.sendBroadcast(i);
-                promise.setResult("");
-
-            }catch (Exception e){
-                promise.setResult("");
+                List<EventObserver> observers = mEventObserversMap.get(eventName);
+                if (observers != null) {
+                    for (EventObserver observer : observers) {
+                        if (observer == null) {
+                            continue;
+                        }
+                        observer.onObserver(eventName, eventParams);
+                    }
+                    promise.setResult("true");// 事件发送成功
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                promise.setResult(e.getMessage());// 事件发送失败
             }
-
         }
     }
+
+    /**
+     * 添加观察者
+     *
+     * @param eventName
+     * @param observer
+     */
+    public void addObserver(String eventName, EventObserver observer) {
+        List<EventObserver> observers = mEventObserversMap.get(eventName);
+        if (observers == null) {
+            observers = new ArrayList<>();
+            mEventObserversMap.put(eventName, observers);
+        }
+        observers.add(observer);
+    }
+
+    /**
+     * 移除观察者
+     *
+     * @param eventName
+     * @param observer
+     */
+    public void removeObserver(String eventName, EventObserver observer) {
+        List<EventObserver> observers = mEventObserversMap.get(eventName);
+        if (observers != null) {
+            observers.remove(observer);
+        }
+    }
+
 }

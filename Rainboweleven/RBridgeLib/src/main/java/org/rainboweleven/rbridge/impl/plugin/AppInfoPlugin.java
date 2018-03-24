@@ -9,7 +9,7 @@ import org.rainboweleven.rbridge.core.RPromise;
 import org.rainboweleven.rbridge.core.RWebkitPlugin;
 
 /**
- * APP信息插件，传递String参数，返回String结果
+ * APP信息插件
  *
  * @author andy(Andy)
  * @datetime 2018-01-04 09:42 GMT+8
@@ -27,27 +27,26 @@ public class AppInfoPlugin extends RWebkitPlugin {
     }
 
     @Override
-    public void onPluginCalled(String module, String method, String params,RPromise promise) {
-
+    public void onPluginCalled(String module, String method, String params, RPromise promise) {
         if (!MODULE_NAME.equals(module)) {
             return;
         }
         // 获取版本号
         if (METHOD_VERSION.equals(method)) {
-            promise.setResult(getAppVersionName(mContext));
+            try {
+                String result = getAppVersionName(mContext);
+                promise.setResult(result);
+            } catch (NameNotFoundException e) {
+                e.printStackTrace();
+                promise.setResult(e.getMessage());
+            }
         }
     }
 
     // 获取APP版本号
-    private static String getAppVersionName(Context context) {
-        String versionName = "";
-        try {
-            PackageManager pm = context.getPackageManager();
-            PackageInfo pi = pm.getPackageInfo(context.getPackageName(), 0);
-            versionName = pi.versionName;
-        } catch (NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        return versionName;
+    private static String getAppVersionName(Context context) throws NameNotFoundException {
+        PackageManager pm = context.getPackageManager();
+        PackageInfo pi = pm.getPackageInfo(context.getPackageName(), 0);
+        return pi.versionName;
     }
 }

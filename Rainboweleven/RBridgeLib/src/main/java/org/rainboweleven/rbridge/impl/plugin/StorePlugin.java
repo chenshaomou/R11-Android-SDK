@@ -2,7 +2,6 @@ package org.rainboweleven.rbridge.impl.plugin;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.Log;
 
 import org.json.JSONObject;
 import org.rainboweleven.rbridge.core.RPromise;
@@ -36,10 +35,9 @@ public class StorePlugin extends RWebkitPlugin {
     }
 
     @Override
-    public void onPluginCalled(String module, String method, String params,RPromise promise) {
-
+    public void onPluginCalled(String module, String method, String params, RPromise promise) {
         if (!MODULE_NAME.equals(module)) {
-            return ;
+            return;
         }
         try {
             JSONObject jsonParams = new JSONObject(params);
@@ -54,7 +52,7 @@ public class StorePlugin extends RWebkitPlugin {
                 String key = jsonParams.optString("key");
                 String value = jsonParams.optString("value");
                 boolean success = mSharedPreferences.edit().putString(key, value).commit();
-                promise.setResult(success+"");
+                promise.setResult(success + "");
             }
             // 获取全部数据
             else if (METHOD_GET_ALL.equals(method)) {
@@ -66,15 +64,16 @@ public class StorePlugin extends RWebkitPlugin {
             else if (METHOD_REMOVE.equals(method)) {
                 String key = jsonParams.optString("key");
                 boolean success = mSharedPreferences.edit().remove(key).commit();
-                promise.setResult(success+"");
+                promise.setResult(success + "");
             }
             // 移除全部
             else if (METHOD_REMOVE_ALL.equals(method)) {
                 boolean success = mSharedPreferences.edit().clear().commit();
-                promise.setResult(success+"");
+                promise.setResult(success + "");
             }
         } catch (Exception e) {
             e.printStackTrace();
+            promise.setResult(e.getMessage());
         }
     }
 }

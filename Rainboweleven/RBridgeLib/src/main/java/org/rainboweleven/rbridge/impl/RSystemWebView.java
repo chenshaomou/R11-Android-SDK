@@ -130,7 +130,7 @@ public class RSystemWebView extends WebView implements RWebViewInterface {
             @Override
             public void onReceive(Context context, Intent intent) {
                 // 第一个是事件的名称 要跟iOS 做统一处理 ， 第二哥参数是 要传给js 事件的参数
-                String script = String .format(RWebViewInterface.CALL_JS_BRIDGE_EVENT_TIGGER,intent.getAction(),intent.getDataString());
+                String script = String .format(RWebViewInterface.CALL_JS_BRIDGE_EVENT_TIGGER,intent.getAction(),intent.getStringExtra("params"));
                 RSystemWebView.this.evaluateJavascript(script);
             }
         };

@@ -247,14 +247,13 @@ public class RBridgePluginManager {
                             p.setListener(new RPromise.OnCallPluginListener() {
                                 @Override
                                 public void onCallPluginResult(String result) {
-                                    WebViewPluginManager.this.onCallPluginResult(mRWebViewInterface, result,
-                                            jsCallback);
+                                    WebViewPluginManager.this.onCallPluginResult(result, jsCallback);
                                 }
                             });
                             actualTypePlugin.onPluginCalled(module, method, params, p);
                         } else {
                             // 没有找到插件
-                            WebViewPluginManager.this.onCallPluginResult(mRWebViewInterface, "插件没有找到", jsCallback);
+                            WebViewPluginManager.this.onCallPluginResult("插件没有找到", jsCallback);
                         }
 
                     }
@@ -264,9 +263,8 @@ public class RBridgePluginManager {
         }
 
         // 执行结果回调
-        private void onCallPluginResult(final RWebViewInterface webViewInterface, final String result, final String
-                jsCallback) {
-            if (webViewInterface == null) {
+        private void onCallPluginResult(final String result, final String jsCallback) {
+            if (mRWebViewInterface == null) {
                 return;
             }
             Runnable runnable = new Runnable() {
@@ -281,7 +279,7 @@ public class RBridgePluginManager {
                     String delScript = String.format(RWebViewInterface.DELETE_JS_BRIDGE_CALLBACK, jsCallback);
                     // javascript:
                     String script = String.format("javascript:%s%s", callScript, delScript);
-                    webViewInterface.evaluateJavascript(script, null);
+                    mRWebViewInterface.evaluateJavascript(script, null);
                 }
             };
             if (mIsRWebViewReady) {

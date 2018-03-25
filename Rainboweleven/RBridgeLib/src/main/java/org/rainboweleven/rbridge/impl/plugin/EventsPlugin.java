@@ -32,7 +32,7 @@ public class EventsPlugin extends RWebkitPlugin {
                 JSONObject jsonParams = new JSONObject(params);
                 String eventName = jsonParams.optString("eventName");
                 String eventParams = jsonParams.optString("params");
-
+                // 统一发给事件中心处理
                 REventsCenter.getInstance(mContext).sendByH5(eventName, eventParams);
                 promise.setResult("true");// 事件发送成功
 

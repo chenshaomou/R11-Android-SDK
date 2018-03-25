@@ -87,7 +87,9 @@ dependencies {
     androidTestImplementation "com.android.support.test:runner:$testRunnerVersion"
     androidTestImplementation "com.android.support.test.espresso:espresso-core:$testEspressoVersion"
 
-    implementation project(path: ':R11Lib')
+    // implementation project(path: ':R11Lib')
+
+    implementation project(path: ':RBridgeLib')
 }
 
 // ============== 以下多版本/集成发布相关 ==============

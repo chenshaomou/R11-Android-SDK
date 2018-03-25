@@ -31,11 +31,6 @@ import java.lang.reflect.Method;
  */
 public class RSystemWebView extends WebView implements RWebViewInterface {
 
-    // 插件管理器
-    private RBridgePluginManager mPluginManager = new RBridgePluginManager(this);
-    // 系统事件监听器
-    private SystemEventsReceiver mSystemEventsReceiver = new SystemEventsReceiver(this);
-
     public RSystemWebView(Context context) {
         super(context);
         init();
@@ -120,9 +115,9 @@ public class RSystemWebView extends WebView implements RWebViewInterface {
                     public void run() {
                         // WebView已准备好了
                         // 插件管理器可以干活了
-                        mPluginManager.onRWebViewReady();
+                        RBridgePluginManager.getInstance().onRWebViewReady(RSystemWebView.this);
                         // 系统事件接收器可以干活了
-                        mSystemEventsReceiver.onRWebViewReady();
+                        REventsCenter.getInstance(getContext()).onRWebViewReady(RSystemWebView.this);
                     }
                 }, 1000);
             }
@@ -174,23 +169,7 @@ public class RSystemWebView extends WebView implements RWebViewInterface {
     @Override
     public void register(String module, String method, RWebkitPlugin plugin) {
         // 交给插件管理器去注册
-        mPluginManager.register(this, module, method, plugin);
-    }
-
-    @Override
-    public void on(String eventName, EventObserver observer) {
-        mPluginManager.on(eventName, observer);
-    }
-
-    @Override
-    public void off(String eventName, EventObserver observer) {
-        mPluginManager.off(eventName, observer);
-    }
-
-    @Override
-    public void send(String eventName, String params) {
-        String script = String.format(RWebViewInterface.CALL_JS_BRIDGE_EVENT_TIGGER, eventName, params);
-        evaluateJavascript(script, (OnCallJsResultListener) null);
+        RBridgePluginManager.getInstance().register(this, module, method, plugin);
     }
 
     @Override
@@ -201,9 +180,9 @@ public class RSystemWebView extends WebView implements RWebViewInterface {
     @Override
     protected void onDetachedFromWindow() {
         // 通知插件管理器不能执行插件了
-        mPluginManager.onRWebViewNotReady();
+        RBridgePluginManager.getInstance().onRWebViewNotReady(this);
         // 通知系统事件接收器不能接收事件了
-        mSystemEventsReceiver.onRWebViewNotReady();
+        REventsCenter.getInstance(getContext()).onRWebViewNotReady(this);
         super.onDetachedFromWindow();
     }
 
@@ -222,6 +201,7 @@ public class RSystemWebView extends WebView implements RWebViewInterface {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return mPluginManager.runNativePlugin(this, module, method, params, jsCallback);
+        // 交给插件管理器去执行
+        return RBridgePluginManager.getInstance().runNativePlugin(this, module, method, params, jsCallback);
     }
 }

@@ -1,5 +1,6 @@
 package org.rainboweleven.rbridge;
 
+import android.content.Context;
 import android.text.TextUtils;
 
 import org.json.JSONObject;
@@ -7,6 +8,7 @@ import org.rainboweleven.rbridge.core.RWebViewInterface;
 import org.rainboweleven.rbridge.core.RWebViewInterface.EventObserver;
 import org.rainboweleven.rbridge.core.RWebViewInterface.OnCallJsResultListener;
 import org.rainboweleven.rbridge.core.RWebkitPlugin;
+import org.rainboweleven.rbridge.impl.REventsCenter;
 
 /**
  * 对外提供的JsBridge操作，全部是静态方法，方便使用
@@ -16,6 +18,25 @@ import org.rainboweleven.rbridge.core.RWebkitPlugin;
  * @email 411086563@qq.com
  */
 public class JsBridge {
+
+    // 单例
+    private static JsBridge sInstance;
+
+    /**
+     * 获取单例
+     *
+     * @return
+     */
+    public static JsBridge getInstance() {
+        if (sInstance == null) {
+            synchronized (JsBridge.class) {
+                if (sInstance == null) {
+                    sInstance = new JsBridge();
+                }
+            }
+        }
+        return sInstance;
+    }
 
     // 私有构造方法
     private JsBridge() {
@@ -28,11 +49,11 @@ public class JsBridge {
      * @param url
      * @param hash
      */
-    public static void loadLocalURL(RWebViewInterface webViewInterface, String url, String hash) {
-        if (webViewInterface == null) {
-            return;
+    public JsBridge loadLocalURL(RWebViewInterface webViewInterface, String url, String hash) {
+        if (webViewInterface != null) {
+            webViewInterface.loadLocalURL(url, hash);
         }
-        webViewInterface.loadLocalURL(url, hash);
+        return this;
     }
 
     /**
@@ -42,11 +63,11 @@ public class JsBridge {
      * @param url
      * @param hash
      */
-    public static void loadRemoteURL(RWebViewInterface webViewInterface, String url, String hash) {
-        if (webViewInterface == null) {
-            return;
+    public JsBridge loadRemoteURL(RWebViewInterface webViewInterface, String url, String hash) {
+        if (webViewInterface != null) {
+            webViewInterface.loadRemoteURL(url, hash);
         }
-        webViewInterface.loadRemoteURL(url, hash);
+        return this;
     }
 
     /**
@@ -57,12 +78,11 @@ public class JsBridge {
      * @param method
      * @param plugin
      */
-    public static void register(RWebViewInterface webViewInterface, String module, String method, RWebkitPlugin
-            plugin) {
-        if (webViewInterface == null) {
-            return;
+    public JsBridge register(RWebViewInterface webViewInterface, String module, String method, RWebkitPlugin plugin) {
+        if (webViewInterface != null) {
+            webViewInterface.register(module, method, plugin);
         }
-        webViewInterface.register(module, method, plugin);
+        return this;
     }
 
     /**
@@ -74,61 +94,52 @@ public class JsBridge {
      * @param params
      * @param listener
      */
-    public static void call(RWebViewInterface webViewInterface, String module, String method, JSONObject params,
-                            OnCallJsResultListener listener) {
-        if (webViewInterface == null) {
-            return;
+    public JsBridge call(RWebViewInterface webViewInterface, String module, String method, JSONObject params,
+                         OnCallJsResultListener listener) {
+        if (webViewInterface != null) {
+            String paramsStr = params.toString();
+            if (TextUtils.isEmpty(module)) {
+                module = RWebViewInterface.MODULE_DEFAULT;
+            }
+            // 执行 window.jsBridge.func.module.method(paramsStr)
+            String script = String.format(RWebViewInterface.CALL_JS_BRIDGE_MODULE_FUNCTION, module, method, paramsStr);
+            webViewInterface.evaluateJavascript(script, listener);
         }
-        String paramsStr = params.toString();
-        if (TextUtils.isEmpty(module)) {
-            module = RWebViewInterface.MODULE_DEFAULT;
-        }
-        // 执行 window.jsBridge.func.module.method(paramsStr)
-        String script = String.format(RWebViewInterface.CALL_JS_BRIDGE_MODULE_FUNCTION, module, method, paramsStr);
-        webViewInterface.evaluateJavascript(script, listener);
+        return this;
     }
 
     /**
-     * 监听来自JS的事件
+     * 监听整个系统的事件(含H5的事件)
      *
-     * @param webViewInterface
+     * @param context
      * @param eventName
      * @param observer
      */
-    public static void on(RWebViewInterface webViewInterface, String eventName, EventObserver observer) {
-        if (webViewInterface == null) {
-            return;
-        }
-        if (webViewInterface == null) {
-            return;
-        }
-        webViewInterface.on(eventName, observer);
+    public JsBridge on(Context context, String eventName, EventObserver observer) {
+        REventsCenter.getInstance(context).on(eventName, observer);
+        return this;
     }
 
     /**
-     * 解除监听来自JS的事件
+     * 解除监听整个系统的事件(含H5的事件)
      *
-     * @param webViewInterface
+     * @param context
      * @param eventName
      */
-    public static void off(RWebViewInterface webViewInterface, String eventName, EventObserver observer) {
-        if (webViewInterface == null) {
-            return;
-        }
-        webViewInterface.off(eventName, observer);
+    public JsBridge off(Context context, String eventName, EventObserver observer) {
+        REventsCenter.getInstance(context).on(eventName, observer);
+        return this;
     }
 
     /**
-     * 发送一个事件给JS
+     * 发送一个事件给整个系统的事件(含H5的事件)
      *
-     * @param webViewInterface
+     * @param context
      * @param eventName
      * @param params
      */
-    public static void send(RWebViewInterface webViewInterface, String eventName, String params) {
-        if (webViewInterface == null) {
-            return;
-        }
-        webViewInterface.send(eventName, params);
+    public JsBridge send(Context context, String eventName, String params) {
+        REventsCenter.getInstance(context).send(eventName, params);
+        return this;
     }
 }

@@ -9,11 +9,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.rainboweleven.R;
 import org.rainboweleven.rbridge.JsBridge;
-import org.rainboweleven.rbridge.core.RBridgeAsyncPlugin;
+import org.rainboweleven.rbridge.core.RWebViewInterface.EventObserver;
 import org.rainboweleven.rbridge.core.RWebViewInterface.OnCallJsResultListener;
 import org.rainboweleven.rbridge.impl.RSystemWebView;
-import org.rainboweleven.rbridge.impl.string_plugin.AppInfoPlugin;
-import org.rainboweleven.rbridge.impl.string_plugin.NetworkPlugin;
+import org.rainboweleven.rbridge.impl.plugin.AppInfoPlugin;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,13 +30,22 @@ public class MainActivity extends AppCompatActivity {
 
         // 注册获取APP版本信息插件
         AppInfoPlugin appInfoPlugin = new AppInfoPlugin(this);
-        JsBridge.getInstance().register(mWebView, AppInfoPlugin.MODULE_NAME, AppInfoPlugin.METHOD_VERSION,
-                appInfoPlugin);
+        JsBridge.getInstance().register(mWebView, AppInfoPlugin.MODULE_NAME, AppInfoPlugin.METHOD_VERSION, appInfoPlugin);
 
-        // 注册网络插件
-        NetworkPlugin networkPlugin = new NetworkPlugin();
-        JsBridge.getInstance().register(mWebView, NetworkPlugin.MODULE_NAME, NetworkPlugin.METHOD_GET, networkPlugin);
-        JsBridge.getInstance().register(mWebView, NetworkPlugin.MODULE_NAME, NetworkPlugin.METHOD_POST, networkPlugin);
+        /**
+        EventObserver observer = new EventObserver() {
+            @Override
+            public void onObserver(String eventName, String params) {
+                // H5加载完成，隐藏loading框
+            }
+        };
+
+        JsBridge.getInstance().on(this, "domLoadFinish", observer);
+
+        JsBridge.getInstance().off(this, "domLoadFinish", observer);
+
+        JsBridge.getInstance().send(this,"onPayFinish", "{'orderNO':'11931398'}");
+         */
     }
 
     // 按钮点击
@@ -49,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        JsBridge.getInstance().call(mWebView, null, "testNavCall", params, new OnCallJsResultListener<String>() {
+        JsBridge.getInstance().call(mWebView, null, "testNavCall", params, new OnCallJsResultListener() {
             @Override
             public void onCallJsResult(String result) {
                 // 执行结果

@@ -70,30 +70,6 @@ public interface RWebViewInterface {
     void register(String module, String method, RWebkitPlugin plugin);
 
     /**
-     * 监听来自JS的事件
-     *
-     * @param eventName
-     * @param observer
-     */
-    void on(String eventName, EventObserver observer);
-
-    /**
-     * 解除监听来自JS的事件
-     *
-     * @param eventName
-     * @param observer
-     */
-    void off(String eventName, EventObserver observer);
-
-    /**
-     * 发送一个事件给JS
-     *
-     * @param eventName
-     * @param params
-     */
-    void send(String eventName, String params);
-
-    /**
      * Context
      *
      * @return

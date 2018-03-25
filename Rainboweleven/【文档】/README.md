@@ -40,3 +40,60 @@ implementation 'org.rainboweleven:rbridge:$versionName'
 
 
 SDK文档和iOS项目参考：https://github.com/chenshaomou/R11-iOS-SDK
+
+
+**JsBridge的使用：**
+**loadLocalURL（加载本地页面）**
+```SHELL
+JsBridge.getInstance().loadLocalURL(webView, path, null);
+```
+**loadRemoteURL（加载远程页面）**
+```SHELL
+JsBridge.getInstance().loadRemoteURL(webView, path, null);
+```
+
+**loadRemoteURL（原生插件注册给JS用）**
+```SHELL
+// 注册获取APP版本信息插件
+AppInfoPlugin appInfoPlugin = new AppInfoPlugin(this);
+JsBridge.getInstance().register(webView, AppInfoPlugin.MODULE_NAME, AppInfoPlugin.METHOD_VERSION, appInfoPlugin);
+```
+
+**call（执行JS上的插件/方法）**
+```SHELL
+JsBridge.getInstance().call(webView, null, "testNavCall", params, new OnCallJsResultListener() {
+@Override
+public void onCallJsResult(String result) {
+// 执行结果
+Log.e("wlf", "执行结果：result：" + result);
+}
+});
+```
+
+**on（监听整个系统的事件(含H5的事件)）**
+```SHELL
+JsBridge.getInstance().on(context, "domLoadFinish", new EventObserver() {
+@Override
+public void onObserver(String eventName, String params) {
+// H5加载完成，隐藏loading框
+}
+});
+```
+
+**off（解除监听整个系统的事件(含H5的事件)）**
+```SHELL
+JsBridge.getInstance().on(context, "domLoadFinish", new EventObserver() {
+@Override
+public void onObserver(String eventName, String params) {
+// H5加载完成，隐藏loading框
+}
+});
+```
+
+**send（发送一个事件给整个系统的事件(含H5的事件)）**
+```SHELL
+JsBridge.getInstance().send(context, "onPayFinish", "{'orderNO':'11931398'}");
+```
+
+
+

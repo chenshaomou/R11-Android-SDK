@@ -109,7 +109,7 @@ public class JsBridge {
     }
 
     /**
-     * 监听整个系统的事件(含H5的事件)
+     * 监听整个系统的事件(含监听来自H5的事件)
      *
      * @param context
      * @param eventName
@@ -121,7 +121,7 @@ public class JsBridge {
     }
 
     /**
-     * 解除监听整个系统的事件(含H5的事件)
+     * 解除监听整个系统的事件(含取消监听来自H5的事件)
      *
      * @param context
      * @param eventName
@@ -132,7 +132,7 @@ public class JsBridge {
     }
 
     /**
-     * 发送一个事件给整个系统(含H5的事件)
+     * 发送一个事件给整个系统(含发给H5)
      *
      * @param context
      * @param eventName

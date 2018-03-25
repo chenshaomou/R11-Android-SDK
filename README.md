@@ -42,7 +42,9 @@ implementation 'org.rainboweleven:rbridge:$versionName'
 SDK文档和iOS项目参考：https://github.com/chenshaomou/R11-iOS-SDK
 
 
-**JsBridge的使用：**
+
+#JsBridge的使用：
+
 **loadLocalURL（加载本地页面）**
 ```SHELL
 JsBridge.getInstance().loadLocalURL(webView, path, null);
@@ -70,7 +72,7 @@ Log.e("wlf", "执行结果：result：" + result);
 });
 ```
 
-**on（监听整个系统的事件(含H5的事件)）**
+**on（监听整个系统的事件(含监听来自H5的事件)）**
 ```SHELL
 JsBridge.getInstance().on(context, "domLoadFinish", new EventObserver() {
 @Override
@@ -80,7 +82,7 @@ public void onObserver(String eventName, String params) {
 });
 ```
 
-**off（解除监听整个系统的事件(含H5的事件)）**
+**off（解除监听整个系统的事件(含取消监听来自H5的事件)）**
 ```SHELL
 JsBridge.getInstance().on(context, "domLoadFinish", new EventObserver() {
 @Override
@@ -90,7 +92,7 @@ public void onObserver(String eventName, String params) {
 });
 ```
 
-**send（发送一个事件给整个系统(含H5的事件)）**
+**send（发送一个事件给整个系统(含发给H5)）**
 ```SHELL
 JsBridge.getInstance().send(context, "onPayFinish", "{'orderNO':'11931398'}");
 ```

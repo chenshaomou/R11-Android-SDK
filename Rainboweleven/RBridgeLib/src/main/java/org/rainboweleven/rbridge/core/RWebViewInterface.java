@@ -35,7 +35,7 @@ public interface RWebViewInterface {
     /**
      * 系统事件调用js
      */
-    String CALL_JS_BRIDGE_EVENT_TIGGER = "javascript:window.jsBridge.events.tigger('%@','%@');";
+    String CALL_JS_BRIDGE_EVENT_TIGGER = "javascript:window.jsBridge.events.tigger('%s','%s');";
 
     /**
      * 读取本地页面
@@ -66,7 +66,7 @@ public interface RWebViewInterface {
      * @param script
      * @param listener
      */
-    void evaluateJavascript(String script, OnCallJsResultListener<String> listener);
+    void evaluateJavascript(String script, OnCallJsResultListener listener);
 
     /**
      * 注册插件
@@ -87,15 +87,20 @@ public interface RWebViewInterface {
     /**
      * 调用JS结果监听器
      *
-     * @param <JSRESULT> 执行JS返回的结果
      */
-    interface OnCallJsResultListener<JSRESULT> {
+    interface OnCallJsResultListener {
 
         /**
          * 调用JS结果
          *
          * @param result JS返回的结果
          */
-        void onCallJsResult(JSRESULT result);
+        void onCallJsResult(String result);
     }
+
+    /**
+     * 获取webview的唯一标识
+     * @return
+     */
+    String getWebviewId();
 }

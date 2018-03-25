@@ -3,6 +3,7 @@ package org.rainboweleven.rbridge.impl;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
@@ -23,6 +24,7 @@ import org.rainboweleven.rbridge.core.RWebViewInterface;
 import org.rainboweleven.rbridge.core.RWebkitPlugin;
 
 import java.lang.reflect.Method;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -106,6 +108,9 @@ public class RSystemWebView extends WebView implements RWebViewInterface {
             settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         }
         settings.setUseWideViewPort(true);
+
+        setWebViewClient(new WebViewClient());
+
         setWebChromeClient(new WebChromeClient() {
             @Override
             public void onReceivedTitle(WebView view, String title) {
@@ -119,7 +124,6 @@ public class RSystemWebView extends WebView implements RWebViewInterface {
                 }, 1000);
             }
         });
-        setWebViewClient(new WebViewClient());
         addJavascriptInterface(this, "nativeBridge");
 
 
@@ -135,17 +139,10 @@ public class RSystemWebView extends WebView implements RWebViewInterface {
             }
         };
 
-        // 注册广播 filter 要排除自己的广播
-        this.context().registerReceiver(broadcastReceiver,null);
-
-        // 注销广播
-        if(broadcastReceiver!=null){
-            this.context().unregisterReceiver(broadcastReceiver);
-        }
-
     }
 
     private BroadcastReceiver broadcastReceiver;
+    public static final String EVENTS_ON_WEBVIEW = "EVENTS_ON_WEBVIEW_";
 
 
     @Override
@@ -220,8 +217,23 @@ public class RSystemWebView extends WebView implements RWebViewInterface {
 
 
     @Override
+    protected void onAttachedToWindow() {
+        // 注册广播 filter 要排除自己的广播
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addCategory(RSystemWebView.EVENTS_ON_WEBVIEW + webId);
+        this.context().registerReceiver(broadcastReceiver,intentFilter);
+        super.onAttachedToWindow();
+    }
+
+    @Override
     protected void onDetachedFromWindow() {
         RBridgePluginManager.getInstance().onRWebViewNotReady(this);
+
+        // 注销广播
+        if(broadcastReceiver!=null){
+            this.context().unregisterReceiver(broadcastReceiver);
+        }
+
         super.onDetachedFromWindow();
     }
 
@@ -243,5 +255,12 @@ public class RSystemWebView extends WebView implements RWebViewInterface {
         }
 
         return RBridgePluginManager.getInstance().runNativePlugin(this, module, method, params, jsCallback);
+    }
+
+    private String webId = UUID.randomUUID().toString();
+
+    @Override
+    public String getWebviewId() {
+        return webId;
     }
 }

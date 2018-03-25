@@ -60,8 +60,8 @@ public class RBridgePluginManager {
         if (VERSION.SDK_INT < VERSION_CODES.KITKAT) {
             webViewType = "ADWKWV";
         }
-        String webId = UUID.randomUUID().toString();
-        String script = String.format(RWebViewInterface.INIT_SCRIPT, webViewType,webId);
+
+        String script = String.format(RWebViewInterface.INIT_SCRIPT, webViewType,webViewInterface.getWebviewId());
         webViewInterface.evaluateJavascript(script, null);
     }
 

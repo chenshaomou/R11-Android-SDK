@@ -52,7 +52,7 @@ JsBridge.getInstance().loadLocalURL(webView, path, null);
 JsBridge.getInstance().loadRemoteURL(webView, path, null);
 ```
 
-**loadRemoteURL（原生插件注册给JS用）**
+**register（原生插件注册给JS用）**
 ```SHELL
 // 注册获取APP版本信息插件
 AppInfoPlugin appInfoPlugin = new AppInfoPlugin(this);

@@ -105,6 +105,8 @@ public class REventsCenter extends BroadcastReceiver {
         }
         // 原生系统事件
         else {
+            eventName = intent.getAction();// action为eventName
+            params = intent.getDataString();// data为params
             handleSystemEvent(eventName, params);
         }
     }

@@ -23,10 +23,10 @@ import java.util.Map;
  */
 public class REventsCenter extends BroadcastReceiver {
 
-    // 用户事件
+    // 原生用户发出的事件
     private static final String ACTION_USER_SEND = "org.rainboweleven.rbridge.impl.REventsCenter.ACTION_USER_SEND";
 
-    // H5事件
+    // H5发来的事件
     private static final String ACTION_H5_SEND = "org.rainboweleven.rbridge.impl.REventsCenter.ACTION_H5_SEND";
 
     /**
@@ -72,11 +72,11 @@ public class REventsCenter extends BroadcastReceiver {
             return;
         }
         IntentFilter filter = new IntentFilter();
-        filter.addAction(ACTION_USER_SEND);// 用户事件
-        filter.addAction(ACTION_H5_SEND);// H5事件
+        filter.addAction(ACTION_USER_SEND);// 原生用户发出的事件
+        filter.addAction(ACTION_H5_SEND);// H5发来的事件
 
         // 其他需要监听的系统事件
-        filter.addAction(Intent.ACTION_MEDIA_UNMOUNTED);// SD卡卸载
+        filter.addAction(Intent.ACTION_MEDIA_UNMOUNTED);// 如：SD卡卸载
 
         rWebViewInterface.context().registerReceiver(this, filter);
         mRWebViewInterfaces.add(rWebViewInterface);
@@ -103,7 +103,6 @@ public class REventsCenter extends BroadcastReceiver {
 
         String action = intent.getAction();
 
-        String eventType = intent.getStringExtra("eventType");
         String eventName = intent.getStringExtra("eventName");
         String params = intent.getStringExtra("params");
 

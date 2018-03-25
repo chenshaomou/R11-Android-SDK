@@ -3,6 +3,7 @@ package org.rainboweleven.rbridge.impl;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.text.TextUtils;
 
 import org.rainboweleven.rbridge.core.RWebViewInterface;
@@ -21,6 +22,12 @@ import java.util.Map;
  * @email 411086563@qq.com
  */
 public class REventsCenter extends BroadcastReceiver {
+
+    // 用户事件
+    private static final String ACTION_USER_SEND = "org.rainboweleven.rbridge.impl.REventsCenter.ACTION_USER_SEND";
+
+    // H5事件
+    private static final String ACTION_H5_SEND = "org.rainboweleven.rbridge.impl.REventsCenter.ACTION_H5_SEND";
 
     /**
      * WebView接口
@@ -64,7 +71,14 @@ public class REventsCenter extends BroadcastReceiver {
         if (rWebViewInterface == null) {
             return;
         }
-        rWebViewInterface.context().registerReceiver(this, null);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ACTION_USER_SEND);// 用户事件
+        filter.addAction(ACTION_H5_SEND);// H5事件
+
+        // 其他需要监听的系统事件
+        filter.addAction(Intent.ACTION_MEDIA_UNMOUNTED);// SD卡卸载
+
+        rWebViewInterface.context().registerReceiver(this, filter);
         mRWebViewInterfaces.add(rWebViewInterface);
     }
 
@@ -87,6 +101,8 @@ public class REventsCenter extends BroadcastReceiver {
         // .CALL_JS_BRIDGE_EVENT_TIGGER
         // 3、H5发来的事件，这个事件是H5端通过EventsPlugin分发下来的，在EventsPlugin调用sendByH5方法发送后即可在onReceive收到，这个事件需要转发给所有on注册的观察者即可
 
+        String action = intent.getAction();
+
         String eventType = intent.getStringExtra("eventType");
         String eventName = intent.getStringExtra("eventName");
         String params = intent.getStringExtra("params");
@@ -96,17 +112,17 @@ public class REventsCenter extends BroadcastReceiver {
         }
 
         // 原生用户发出的事件
-        if ("user".equals(eventType)) {
+        if (ACTION_USER_SEND.equals(action)) {
             handleUserEvent(eventName, params);
         }
         // H5发来的事件
-        else if ("h5".equals(eventType)) {
+        else if (ACTION_H5_SEND.equals(action)) {
             handleH5Event(eventName, params);
         }
         // 原生系统事件
         else {
-            eventName = intent.getAction();// action为eventName
-            params = intent.getDataString();// data为params
+            eventName = intent.getAction();// 暂定action为eventName
+            params = intent.getDataString();// 暂定data为params
             handleSystemEvent(eventName, params);
         }
     }
@@ -160,8 +176,8 @@ public class REventsCenter extends BroadcastReceiver {
      */
     public void send(String eventName, String params) {
         Intent intent = new Intent();
-        intent.setAction(eventName);
-        intent.putExtra("eventType", "user");
+        intent.setAction(ACTION_USER_SEND);
+        intent.putExtra("eventName", eventName);
         intent.putExtra("params", params);
         mContext.sendBroadcast(intent);
     }
@@ -174,8 +190,8 @@ public class REventsCenter extends BroadcastReceiver {
      */
     public void sendByH5(String eventName, String params) {
         Intent intent = new Intent();
-        intent.setAction(eventName);
-        intent.putExtra("eventType", "h5");
+        intent.setAction(ACTION_H5_SEND);
+        intent.putExtra("eventName", eventName);
         intent.putExtra("params", params);
         mContext.sendBroadcast(intent);
     }

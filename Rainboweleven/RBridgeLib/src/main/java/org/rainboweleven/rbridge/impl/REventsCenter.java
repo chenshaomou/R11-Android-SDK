@@ -85,7 +85,7 @@ public class REventsCenter extends BroadcastReceiver {
         // 1、原生系统事件，只需要在广播注册的时候加上要监听事件即可，这个事件需要转发给所有on注册的观察者以及发往H5的事件处理入口RWebViewInterface.CALL_JS_BRIDGE_EVENT_TIGGER
         // 2、原生用户发出的事件，调用send方法发送后即可在onReceive收到，同理：这个事件需要转发给所有on注册的观察者以及发往H5的事件处理入口RWebViewInterface
         // .CALL_JS_BRIDGE_EVENT_TIGGER
-        // 3、H5发来的事件，这个事件是H5端通过EventsPlugin分发下来的，在EventsPlugin调用send方法发送后即可在onReceive收到，这个事件需要转发给所有on注册的观察者即可
+        // 3、H5发来的事件，这个事件是H5端通过EventsPlugin分发下来的，在EventsPlugin调用sendByH5方法发送后即可在onReceive收到，这个事件需要转发给所有on注册的观察者即可
 
         String eventType = intent.getStringExtra("eventType");
         String eventName = intent.getStringExtra("eventName");

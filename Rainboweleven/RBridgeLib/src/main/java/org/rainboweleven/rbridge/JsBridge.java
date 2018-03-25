@@ -127,7 +127,7 @@ public class JsBridge {
      * @param eventName
      */
     public JsBridge off(Context context, String eventName, EventObserver observer) {
-        REventsCenter.getInstance(context).on(eventName, observer);
+        REventsCenter.getInstance(context).off(eventName, observer);
         return this;
     }
 

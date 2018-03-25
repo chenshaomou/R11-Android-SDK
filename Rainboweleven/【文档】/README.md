@@ -84,12 +84,7 @@ public void onObserver(String eventName, String params) {
 
 **off（解除监听整个系统的事件(含取消监听来自H5的事件)）**
 ```SHELL
-JsBridge.getInstance().on(context, "domLoadFinish", new EventObserver() {
-@Override
-public void onObserver(String eventName, String params) {
-// H5加载完成，隐藏loading框
-}
-});
+JsBridge.getInstance().off(this, "domLoadFinish", observer);
 ```
 
 **send（发送一个事件给整个系统(含发给H5)）**

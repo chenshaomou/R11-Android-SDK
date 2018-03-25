@@ -162,7 +162,7 @@ public class RBridgePluginManager {
             // register(AppInfoPlugin.MODULE_NAME, AppInfoPlugin.METHOD_VERSION, new AppInfoPlugin(mRWebViewInterface
             // .context()));
             // 事件插件
-            EventsPlugin eventsPlugin = new EventsPlugin();
+            EventsPlugin eventsPlugin = new EventsPlugin(mRWebViewInterface.context());
             register(EventsPlugin.MODULE_NAME, EventsPlugin.SEND_EVENT, eventsPlugin);
         }
 

@@ -90,7 +90,7 @@ public void onObserver(String eventName, String params) {
 });
 ```
 
-**send（发送一个事件给整个系统的事件(含H5的事件)）**
+**send（发送一个事件给整个系统(含H5的事件)）**
 ```SHELL
 JsBridge.getInstance().send(context, "onPayFinish", "{'orderNO':'11931398'}");
 ```

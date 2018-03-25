@@ -132,7 +132,7 @@ public class JsBridge {
     }
 
     /**
-     * 发送一个事件给整个系统的事件(含H5的事件)
+     * 发送一个事件给整个系统(含H5的事件)
      *
      * @param context
      * @param eventName

@@ -158,7 +158,7 @@ public class RSystemWebView extends WebView implements RWebViewInterface {
     public String evaluateJavascript(String script) {
         final String[] syncResult = {null};
         final CountDownLatch latch = new CountDownLatch(1);
-        evaluateJavascript(script, new OnCallJsResultListener<String>() {
+        evaluateJavascript(script, new OnCallJsResultListener() {
             @Override
             public void onCallJsResult(String result) {
                 syncResult[0] = result;
@@ -179,7 +179,7 @@ public class RSystemWebView extends WebView implements RWebViewInterface {
     }
 
     @Override
-    public void evaluateJavascript(final String script, final OnCallJsResultListener<String> listener) {
+    public void evaluateJavascript(final String script, final OnCallJsResultListener listener) {
         // Runnable
         Runnable runnable = new Runnable() {
             @Override

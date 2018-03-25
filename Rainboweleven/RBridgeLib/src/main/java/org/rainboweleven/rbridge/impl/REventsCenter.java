@@ -59,9 +59,36 @@ public class REventsCenter extends BroadcastReceiver {
         return sInstance;
     }
 
+    /**
+     * 释放单例实例，退出时候调用
+     */
+    public void release(){
+        if (sInstance != null) {
+            synchronized (REventsCenter.class) {
+                if (sInstance != null) {
+                    // 取消监听事件
+                    mContext.unregisterReceiver(this);
+                    // 清空WebView引用
+                    mRWebViewInterfaces.clear();
+                    // 单例销毁
+                    sInstance = null;
+                }
+            }
+        }
+    }
+
     // 构造方法
     private REventsCenter(Context context) {
         mContext = context.getApplicationContext();
+
+        // 注册所有想要监听的事件
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ACTION_USER_SEND);// 原生用户发出的事件
+        filter.addAction(ACTION_H5_SEND);// H5发来的事件
+        // 其他需要监听的系统事件
+        filter.addAction(Intent.ACTION_MEDIA_UNMOUNTED);// 如：SD卡卸载
+
+        mContext.registerReceiver(this, filter);
     }
 
     /**
@@ -71,14 +98,6 @@ public class REventsCenter extends BroadcastReceiver {
         if (rWebViewInterface == null) {
             return;
         }
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(ACTION_USER_SEND);// 原生用户发出的事件
-        filter.addAction(ACTION_H5_SEND);// H5发来的事件
-
-        // 其他需要监听的系统事件
-        filter.addAction(Intent.ACTION_MEDIA_UNMOUNTED);// 如：SD卡卸载
-
-        rWebViewInterface.context().registerReceiver(this, filter);
         mRWebViewInterfaces.add(rWebViewInterface);
     }
 
@@ -89,7 +108,6 @@ public class REventsCenter extends BroadcastReceiver {
         if (rWebViewInterface == null) {
             return;
         }
-        rWebViewInterface.context().unregisterReceiver(this);
         mRWebViewInterfaces.remove(rWebViewInterface);
     }
 

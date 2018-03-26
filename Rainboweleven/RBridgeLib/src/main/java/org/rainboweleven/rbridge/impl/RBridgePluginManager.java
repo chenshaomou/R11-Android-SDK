@@ -119,8 +119,8 @@ public class RBridgePluginManager {
                 }
                 // 生成 window.jsBridge.module.method(params, callback)
                 webViewInterface.evaluateJavascript(plugin.onGetCreatePluginScript(module, method), new
-                        OnCallJsResultListener<String>() {
-                    @Override
+                        OnCallJsResultListener() {
+                                @Override
                     public void onCallJsResult(String result) {
                         // 插件存储
                         String key = getKey(module, method);

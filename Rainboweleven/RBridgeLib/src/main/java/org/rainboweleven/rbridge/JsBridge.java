@@ -93,7 +93,7 @@ public class JsBridge {
      * @param listener
      */
     public void call(RWebViewInterface webViewInterface, String module, String method, JSONObject params,
-                     OnCallJsResultListener<String> listener) {
+                     OnCallJsResultListener listener) {
         if (webViewInterface == null) {
             return;
         }

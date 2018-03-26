@@ -86,23 +86,19 @@ public class JsBridge {
     }
 
     /**
-     * 执行JS上的插件(方法)
+     * 执行JS上window.jsBridge.func的插件(方法)
      *
      * @param webViewInterface
-     * @param module
      * @param method
      * @param params
      * @param listener
      */
-    public JsBridge call(RWebViewInterface webViewInterface, String module, String method, JSONObject params,
+    public JsBridge call(RWebViewInterface webViewInterface, String method, JSONObject params,
                          OnCallJsResultListener listener) {
         if (webViewInterface != null) {
             String paramsStr = params.toString();
-            if (TextUtils.isEmpty(module)) {
-                module = RWebViewInterface.MODULE_DEFAULT;
-            }
             // 执行 window.jsBridge.func.module.method(paramsStr)
-            String script = String.format(RWebViewInterface.CALL_JS_BRIDGE_MODULE_FUNCTION, module, method, paramsStr);
+            String script = String.format(RWebViewInterface.CALL_JS_BRIDGE_MODULE_FUNCTION, method, paramsStr);
             webViewInterface.evaluateJavascript(script, listener);
         }
         return this;
@@ -141,5 +137,12 @@ public class JsBridge {
     public JsBridge send(Context context, String eventName, String params) {
         REventsCenter.getInstance(context).send(eventName, params);
         return this;
+    }
+
+    /**
+     * 释放，退出时候调用
+     */
+    public void release(Context context){
+        REventsCenter.getInstance(context).release();
     }
 }

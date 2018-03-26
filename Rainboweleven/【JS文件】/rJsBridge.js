@@ -260,6 +260,29 @@ function initJsBridge(webViewType) {
     }
 
     /**
+     * 发送文档事件，原生可以直接调用此function发送JS文档事件，使用示例：
+     * // 1个参数
+     * jsBridge.sendDocumentEvent('deviceready')
+     * // 2个参数
+     * jsBridge.sendDocumentEvent('deviceready', true)
+     * @type {Function}
+     * @param eventName 要发送的事件名，非空
+     * @param cancelable 是否可取消，可为空，不传默认为false
+     */
+    window.jsBridge.sendDocumentEvent = window.jsBridge.sendDocumentEvent || function (eventName, cancelable) {
+        // 发送文档事件给JS
+        var event = window.document.createEvent('Event')
+        // 参数为1个
+        if (arguments.length == 1 || typeof cancelable == 'undefined') {
+            // 默认为false
+            cancelable = false
+        }
+        event.initEvent(eventName, false, cancelable)
+        // 发送事件
+        window.document.dispatchEvent(event)
+    }
+
+    /**
      * 触发事件
      * @eventName 事件名称
      * @params 事件参数

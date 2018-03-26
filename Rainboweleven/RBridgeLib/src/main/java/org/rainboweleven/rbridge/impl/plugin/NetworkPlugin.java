@@ -5,6 +5,7 @@ import org.rainboweleven.rbridge.core.RPromise;
 import org.rainboweleven.rbridge.core.RWebkitPlugin;
 
 import java.io.IOException;
+import java.util.Iterator;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -24,12 +25,16 @@ import okhttp3.Response;
 public class NetworkPlugin extends RWebkitPlugin {
 
     public static final String MODULE_NAME = "network";
-    public static final String METHOD_GET = "get";
-    public static final String METHOD_POST = "post";
+    public static final String METHOD_REQUEST = "request";
+    public static final String REQUEST_METHOD_GET = "get";
+    public static final String REQUEST_METHOD_POST = "post";
 
     @Override
     public void onPluginCalled(String module, String method, String params, final RPromise promise) {
         if (!MODULE_NAME.equals(module)) {
+            return;
+        }
+        if(!METHOD_REQUEST.equals(method)){
             return;
         }
         try {
@@ -38,15 +43,28 @@ public class NetworkPlugin extends RWebkitPlugin {
             String url = jsonParams.optString("url");
             // 请求方式，POST和GET
             String httpMethod = jsonParams.optString("method");
+            JSONObject httpHeader = jsonParams.optJSONObject("header");
             // 请求参数, 当method为post时才有参数，method为get时参数在url中
-            JSONObject httpParams = jsonParams.optJSONObject("params");
+            JSONObject httpContent = jsonParams.optJSONObject("data");
 
             OkHttpClient okHttpClient = new OkHttpClient();
             Request.Builder builder = new Request.Builder().url(url);
             // post请求
-            if (METHOD_POST.equalsIgnoreCase(httpMethod) && httpParams != null) {
-                RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), httpParams
-                        .toString());
+            if (REQUEST_METHOD_POST.equalsIgnoreCase(httpMethod)) {
+                String content = "";
+                if(httpContent != null){
+                    content = httpContent.toString();
+                }
+                String contentType = httpHeader.getString("Content-Type");
+                RequestBody body = RequestBody.create(MediaType.parse(contentType), content);
+                Iterator<String> keys = httpHeader.keys();
+                while (keys.hasNext()){
+                    String key = keys.next();
+                    String value = httpHeader.getString(key);
+                    if(value != null) {
+                        builder.addHeader(key, value);
+                    }
+                }
                 builder.method(httpMethod, body);
             }
             Request request = builder.build();

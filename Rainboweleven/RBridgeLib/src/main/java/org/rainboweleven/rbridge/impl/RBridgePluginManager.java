@@ -156,8 +156,7 @@ public class RBridgePluginManager {
             register(StorePlugin.MODULE_NAME, StorePlugin.METHOD_REMOVE_ALL, new StorePlugin(mRWebViewInterface
                     .context()));
             // 网络插件
-            register(NetworkPlugin.MODULE_NAME, NetworkPlugin.METHOD_GET, new NetworkPlugin());
-            register(NetworkPlugin.MODULE_NAME, NetworkPlugin.METHOD_POST, new NetworkPlugin());
+            register(NetworkPlugin.MODULE_NAME, NetworkPlugin.METHOD_REQUEST, new NetworkPlugin());
             // 版本插件
             // register(AppInfoPlugin.MODULE_NAME, AppInfoPlugin.METHOD_VERSION, new AppInfoPlugin(mRWebViewInterface
             // .context()));
@@ -187,6 +186,9 @@ public class RBridgePluginManager {
                 }
             }
             mRunnables.clear();
+            // 发送sdk ready事件
+            String script = String.format(RWebViewInterface.CALL_SEND_DOCUMENT_EVENT, "deviceready");
+            mRWebViewInterface.evaluateJavascript(script, null);
         }
 
         /**

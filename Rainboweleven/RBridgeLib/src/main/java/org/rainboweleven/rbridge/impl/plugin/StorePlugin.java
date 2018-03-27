@@ -7,6 +7,7 @@ import org.json.JSONObject;
 import org.rainboweleven.rbridge.core.RPromise;
 import org.rainboweleven.rbridge.core.RWebkitPlugin;
 
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -19,8 +20,8 @@ import java.util.Map;
 public class StorePlugin extends RWebkitPlugin {
 
     public static final String MODULE_NAME = "store";
-    public static final String METHOD_GET_VALUE = "getValue";
-    public static final String METHOD_SET_VALUE = "setValue";
+    public static final String METHOD_GET = "get";
+    public static final String METHOD_SET = "set";
     public static final String METHOD_GET_ALL = "getAll";
     public static final String METHOD_REMOVE = "remove";
     public static final String METHOD_REMOVE_ALL = "removeAll";
@@ -40,18 +41,24 @@ public class StorePlugin extends RWebkitPlugin {
             return;
         }
         try {
-            JSONObject jsonParams = new JSONObject(params);
             // 获取数据
-            if (METHOD_GET_VALUE.equals(method)) {
-                String key = jsonParams.optString("key");
+            if (METHOD_GET.equals(method)) {
+                String key = params;
                 String value = mSharedPreferences.getString(key, null);
                 promise.setResult(value);
             }
             // 存储数据
-            else if (METHOD_SET_VALUE.equals(method)) {
-                String key = jsonParams.optString("key");
-                String value = jsonParams.optString("value");
-                boolean success = mSharedPreferences.edit().putString(key, value).commit();
+            else if (METHOD_SET.equals(method)) {
+                JSONObject jsonParams = new JSONObject(params);
+                Iterator<String> keys = jsonParams.keys();
+                boolean success = true;
+                while (keys.hasNext()) {
+                    String key = keys.next();
+                    String value = jsonParams.getString(key);
+                    if (value != null) {
+                        success = success && mSharedPreferences.edit().putString(key, value).commit();
+                    }
+                }
                 promise.setResult(success + "");
             }
             // 获取全部数据
@@ -62,7 +69,7 @@ public class StorePlugin extends RWebkitPlugin {
             }
             // 移除
             else if (METHOD_REMOVE.equals(method)) {
-                String key = jsonParams.optString("key");
+                String key = params;
                 boolean success = mSharedPreferences.edit().remove(key).commit();
                 promise.setResult(success + "");
             }

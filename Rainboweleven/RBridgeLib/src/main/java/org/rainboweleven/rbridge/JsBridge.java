@@ -144,5 +144,13 @@ public class JsBridge {
      */
     public void release(Context context){
         REventsCenter.getInstance(context).release();
+        if (sInstance != null) {
+            synchronized (REventsCenter.class) {
+                if (sInstance != null) {
+                    // 单例销毁
+                    sInstance = null;
+                }
+            }
+        }
     }
 }

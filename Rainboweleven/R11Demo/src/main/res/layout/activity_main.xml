@@ -15,4 +15,22 @@
         android:layout_height="wrap_content"
         android:onClick="btnClick"
         android:text="原生button按钮，原生调用JS方法"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="btnEventClick"
+        android:text="原生button按钮，发送原生onPayFinish事件"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="btnEventOffClick"
+        android:text="原生button按钮，原生取消监听onPayFinish事件(可能来自原生)"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="btnEventH5OffClick"
+        android:text="原生button按钮，原生取消监听pageFinish事件(可能来自H5)"/>
 </LinearLayout>

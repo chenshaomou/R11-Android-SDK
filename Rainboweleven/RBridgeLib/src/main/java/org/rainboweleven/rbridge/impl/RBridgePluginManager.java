@@ -4,11 +4,13 @@ import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 
 import org.rainboweleven.rbridge.core.RPromise;
 import org.rainboweleven.rbridge.core.RWebViewInterface;
 import org.rainboweleven.rbridge.core.RWebViewInterface.OnCallJsResultListener;
 import org.rainboweleven.rbridge.core.RWebkitPlugin;
+import org.rainboweleven.rbridge.impl.plugin.AppInfoPlugin;
 import org.rainboweleven.rbridge.impl.plugin.EventsPlugin;
 import org.rainboweleven.rbridge.impl.plugin.NetworkPlugin;
 import org.rainboweleven.rbridge.impl.plugin.StorePlugin;
@@ -146,10 +148,8 @@ public class RBridgePluginManager {
         // 初始化sdk插件
         private void initPlugins() {
             // 存储插件
-            register(StorePlugin.MODULE_NAME, StorePlugin.METHOD_SET_VALUE, new StorePlugin(mRWebViewInterface
-                    .context()));
-            register(StorePlugin.MODULE_NAME, StorePlugin.METHOD_GET_VALUE, new StorePlugin(mRWebViewInterface
-                    .context()));
+            register(StorePlugin.MODULE_NAME, StorePlugin.METHOD_SET, new StorePlugin(mRWebViewInterface.context()));
+            register(StorePlugin.MODULE_NAME, StorePlugin.METHOD_GET, new StorePlugin(mRWebViewInterface.context()));
             register(StorePlugin.MODULE_NAME, StorePlugin.METHOD_GET_ALL, new StorePlugin(mRWebViewInterface.context
                     ()));
             register(StorePlugin.MODULE_NAME, StorePlugin.METHOD_REMOVE, new StorePlugin(mRWebViewInterface.context()));
@@ -158,8 +158,8 @@ public class RBridgePluginManager {
             // 网络插件
             register(NetworkPlugin.MODULE_NAME, NetworkPlugin.METHOD_REQUEST, new NetworkPlugin());
             // 版本插件
-            // register(AppInfoPlugin.MODULE_NAME, AppInfoPlugin.METHOD_VERSION, new AppInfoPlugin(mRWebViewInterface
-            // .context()));
+            register(AppInfoPlugin.MODULE_NAME, AppInfoPlugin.METHOD_VERSION, new AppInfoPlugin(mRWebViewInterface
+                    .context()));
             // 事件插件
             EventsPlugin eventsPlugin = new EventsPlugin(mRWebViewInterface.context());
             register(EventsPlugin.MODULE_NAME, EventsPlugin.SEND_EVENT, eventsPlugin);
@@ -237,7 +237,7 @@ public class RBridgePluginManager {
             final RWebkitPlugin actualTypePlugin = mPluginsMap.get(key);
             final RPromise p = new RPromise();
             //没有callback 异步
-            if (jsCallback == null) {
+            if (TextUtils.isEmpty(jsCallback)) {
                 actualTypePlugin.onPluginCalled(module, method, params, p);
                 return p.getResult();
             } else {
@@ -273,6 +273,9 @@ public class RBridgePluginManager {
                 @Override
                 public void run() {
                     if (!mIsRWebViewReady) {
+                        return;
+                    }
+                    if (TextUtils.isEmpty(jsCallback)) {
                         return;
                     }
                     // 异步JS回调

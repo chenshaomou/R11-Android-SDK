@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -12,11 +13,26 @@ import org.rainboweleven.rbridge.JsBridge;
 import org.rainboweleven.rbridge.core.RWebViewInterface.EventObserver;
 import org.rainboweleven.rbridge.core.RWebViewInterface.OnCallJsResultListener;
 import org.rainboweleven.rbridge.impl.RSystemWebView;
-import org.rainboweleven.rbridge.impl.plugin.AppInfoPlugin;
 
 public class MainActivity extends AppCompatActivity {
 
     private RSystemWebView mWebView;
+
+    private EventObserver mObserver = new EventObserver() {
+        @Override
+        public void onObserver(String eventName, String params) {
+            Log.e("wlf","原生收到pageFinish事件(可能来自H5)");
+            Toast.makeText(MainActivity.this,"原生收到pageFinish事件(可能来自H5)",Toast.LENGTH_SHORT).show();
+        }
+    };
+
+    private EventObserver mObserver2 = new EventObserver() {
+        @Override
+        public void onObserver(String eventName, String params) {
+            Log.e("wlf","原生收到onPayFinish事件(可能来自原生)");
+            Toast.makeText(MainActivity.this,"原生收到onPayFinish事件(可能来自原生)",Toast.LENGTH_SHORT).show();
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,35 +45,14 @@ public class MainActivity extends AppCompatActivity {
         JsBridge.getInstance().loadLocalURL(mWebView, path, null);
 
         // 注册获取APP版本信息插件
-        AppInfoPlugin appInfoPlugin = new AppInfoPlugin(this);
-        JsBridge.getInstance().register(mWebView, AppInfoPlugin.MODULE_NAME, AppInfoPlugin.METHOD_VERSION, appInfoPlugin);
-
-        EventObserver observer = new EventObserver() {
-            @Override
-            public void onObserver(String eventName, String params) {
-                // H5加载完成，隐藏loading框
-                Log.e("wlf","收到pageFinish事件(可能来自H5)");
-                // 取消注册
-                JsBridge.getInstance().off(MainActivity.this, "pageFinish", this);
-            }
-        };
+        // AppInfoPlugin appInfoPlugin = new AppInfoPlugin(this);
+        // JsBridge.getInstance().register(mWebView, AppInfoPlugin.MODULE_NAME, AppInfoPlugin.METHOD_VERSION, appInfoPlugin);
 
         // 注册监听pageFinish事件
-        JsBridge.getInstance().on(this, "pageFinish", observer);
+        JsBridge.getInstance().on(this, "pageFinish", mObserver);
 
-        EventObserver observer2 = new EventObserver() {
-            @Override
-            public void onObserver(String eventName, String params) {
-                Log.e("wlf","收到onPayFinish事件(可能来自原生)");
-                // 取消注册
-                JsBridge.getInstance().off(MainActivity.this, "onPayFinish", this);
-            }
-        };
         // 注册监听onPayFinish事件
-        JsBridge.getInstance().on(this, "onPayFinish", observer2);
-
-        // 发送原生事件（H5和原生都要收得到）
-        JsBridge.getInstance().send(this,"onPayFinish", "{'orderNO':'11931398'}");
+        JsBridge.getInstance().on(this, "onPayFinish", mObserver2);
     }
 
     // 按钮点击
@@ -76,6 +71,24 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("wlf", "执行结果：result：" + result);
             }
         });
+    }
+
+    // 按钮点击
+    public void btnEventClick(View view) {
+        // 发送原生事件（H5和原生都要收得到）
+        JsBridge.getInstance().send(this,"onPayFinish", "{\"orderNO\":\"11931398\"}");
+    }
+
+    // 按钮点击
+    public void btnEventOffClick(View view) {
+        // 取消注册
+        JsBridge.getInstance().off(MainActivity.this, "onPayFinish", mObserver2);
+    }
+
+    // 按钮点击
+    public void btnEventH5OffClick(View view) {
+        // 取消注册
+        JsBridge.getInstance().off(MainActivity.this, "pageFinish", mObserver);
     }
 
     @Override

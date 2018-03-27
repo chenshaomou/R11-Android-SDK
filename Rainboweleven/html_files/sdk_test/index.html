@@ -43,6 +43,7 @@
                 align-content: flex-start;
             }
             </style>
+   <!-- <script type="text/javascript" src="rJsBridge.js"></script> -->
 </head>
 <body>
 <div class="box">
@@ -70,8 +71,8 @@
         <div class="btn" onclick="netRequestGet()">异步调用网络get(不带参数)</div>
         <div class="btn" onclick="netRequestPost()">异步调用网络post(对象)</div>
 
-        <div class="btn" onclick="sendPageFinish()">发送事件(对象)</div>
-        <div class="btn" onclick="receiveEvent()">注册接收事件(对象)</div>
+        <div class="btn" onclick="sendPageFinish()">发送pageFinish事件(原生应该也能收到)</div>
+        <div class="btn" onclick="receiveEvent()">注册接收onPayFinish事件(可能来自原生)</div>
     </div>
 </div>
 </body>
@@ -308,6 +309,10 @@
        jsBridge.on('onPayFinish', function(r){
             document.getElementById("content").innerHTML = "收到原生的onPayFinish 事件...<br/>"
         })
+    }
+
+    function clean() {
+        document.getElementById("content").innerHTML=""
     }
 
     </script>

@@ -8,6 +8,7 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.webkit.CookieManager;
+import android.webkit.DownloadListener;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -30,6 +31,10 @@ import java.lang.reflect.Method;
  * @email 411086563@qq.com
  */
 public class RSystemWebView extends WebView implements RWebViewInterface {
+
+    private SystemWebViewClient mWebViewClient = new SystemWebViewClient(this);
+    private SystemWebChromeClient mWebChromeClient = new SystemWebChromeClient(this);
+    private SystemDownloadListener mDownloadListener = new SystemDownloadListener(this);
 
     public RSystemWebView(Context context) {
         super(context);
@@ -103,27 +108,31 @@ public class RSystemWebView extends WebView implements RWebViewInterface {
             settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         }
         settings.setUseWideViewPort(true);
-        setWebViewClient(new WebViewClient());
 
-        setWebChromeClient(new WebChromeClient() {
-            @Override
-            public void onReceivedTitle(WebView view, String title) {
-                super.onReceivedTitle(view, title);
-                // FIXME 这里待优化
-                postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        // WebView已准备好了
-                        // 插件管理器可以干活了
-                        RBridgePluginManager.getInstance().onRWebViewReady(RSystemWebView.this);
-                        // 系统事件接收器可以干活了
-                        REventsCenter.getInstance(getContext()).onRWebViewReady(RSystemWebView.this);
-                    }
-                }, 1000);
-            }
-        });
+        // 调用父类设置
+        super.setDownloadListener(mDownloadListener);
+        // 调用父类设置
+        super.setWebViewClient(mWebViewClient);
+        // 调用父类设置
+        super.setWebChromeClient(mWebChromeClient);
+
         // 绑定nativeBridge到JS的window上，主要是暴露当前类的call方法给JS调用
         addJavascriptInterface(this, "nativeBridge");
+    }
+
+    @Override
+    public void setWebViewClient(WebViewClient client) {
+        mWebViewClient.setWebViewClient(client);
+    }
+
+    @Override
+    public void setWebChromeClient(WebChromeClient client) {
+        mWebChromeClient.setWebChromeClient(client);
+    }
+
+    @Override
+    public void setDownloadListener(DownloadListener listener) {
+        mDownloadListener.setDownloadListener(listener);
     }
 
     @Override

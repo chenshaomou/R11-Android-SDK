@@ -1,0 +1,294 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "org.rainboweleven.demo"
+
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode rootProject.ext.versionCode
+        versionName rootProject.ext.versionName
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    lintOptions {
+        checkReleaseBuilds rootProject.ext.checkReleaseBuilds
+        // Or, if you prefer, you can continue to check for errors in release builds,
+        // but continue the build even when errors are found:
+        abortOnError rootProject.ext.abortOnError
+    }
+    signingConfigs {
+        debug {
+            storeFile file("../keystore/andy_keystore.jks")
+            storePassword "123456"
+            keyAlias "debug_keystore"
+            keyPassword "123456"
+        }
+        release {
+            storeFile file("../keystore/andy_keystore.jks")
+            storePassword "123456"
+            keyAlias "debug_keystore"
+            keyPassword "123456"
+        }
+    }
+    buildTypes {
+        // debug，系统保留
+        debug {
+            minifyEnabled rootProject.ext.minifyEnabled
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
+
+            // 包名加上.debug后缀
+            applicationIdSuffix ".debug"
+
+            // 填充编译打包相关信息版本
+            // URL，读取gradle.properties中的baseUrlTest值
+            buildConfigField("String", "BASE_URL", BuildConfigUtil.wrapString(getBaseUrl(name)))
+            manifestPlaceholders = [BUILD_APP_NAME: "R11调试"]
+        }
+        // 测试版本，不直接用"test"关键字是因为"test"编译不通过
+        fortest {
+            minifyEnabled rootProject.ext.minifyEnabled
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
+
+            debuggable true
+
+            // 包名加上.test后缀
+            applicationIdSuffix ".test"
+
+            // 填充编译打包相关信息版本
+            // URL，读取gradle.properties中的baseUrlTest值
+            buildConfigField("String", "BASE_URL", BuildConfigUtil.wrapString(getBaseUrl(name)))
+            manifestPlaceholders = [BUILD_APP_NAME: "R11测试"]
+        }
+        // 发布版本
+        release {
+            minifyEnabled rootProject.ext.minifyEnabled
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+
+            // 填充编译打包相关信息版本
+            // URL，读取gradle.properties中的baseUrlRelease值
+            buildConfigField("String", "BASE_URL", BuildConfigUtil.wrapString(getBaseUrl(name)))
+            manifestPlaceholders = [BUILD_APP_NAME: "@string/app_name"]
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation "com.android.support:appcompat-v7:$v7SupportVersion"
+    implementation "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"
+
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "com.android.support.test:runner:$testRunnerVersion"
+    androidTestImplementation "com.android.support.test.espresso:espresso-core:$testEspressoVersion"
+
+    // implementation project(path: ':R11Lib')
+
+    implementation project(path: ':RBridgeLib')
+}
+
+// ============== 以下多版本/集成发布相关 ==============
+
+def gitBuildCode() {
+    try {
+        return Integer.parseInt(appBuildCode)
+    } catch (Exception e) {
+    }
+    return -1
+}
+
+void updateBuildCode(int curBuildCode) {
+    try {
+        // 修改gradle.properties中appBuildCode的值
+        Properties properties = new Properties()
+        Reader reader = project.rootProject.file("gradle.properties").newReader("UTF-8")
+        properties.load(reader)
+        Writer writer = project.rootProject.file("gradle.properties").newWriter("UTF-8")
+        def newVersionCode = curBuildCode + 1
+        properties.setProperty("appBuildCode", newVersionCode + "")
+        properties.store(writer, "htmlInputPath : path of html root dir\nappBuildCode : the app versionCode")
+    } catch (Exception e) {
+    }
+}
+
+def getApkOutput() {
+    try {
+        return apkOutputPath
+    } catch (Exception e) {
+    }
+    return null
+}
+
+def getHtmlInput() {
+    try {
+        return htmlInputPath
+    } catch (Exception e) {
+    }
+    return null
+}
+
+def getBaseUrl(buildTypeName) {
+    try {
+        if (buildTypeName.contains("debug") || buildTypeName.contains("fortest")) {
+            return baseUrlTest
+        } else if (buildTypeName.contains("release")) {
+            return baseUrlRelease
+        }
+    } catch (Exception e) {
+    }
+    return null
+}
+
+def getVersionNameExt(buildTypeName) {
+    try {
+        if (buildTypeName.contains("debug")) {
+            return "调试"
+        } else if (buildTypeName.contains("fortest")) {
+            return "测试"
+        }
+    } catch (Exception e) {
+    }
+    return null
+}
+
+def getPathNameExt(buildTypeName) {
+    try {
+        if (buildTypeName.contains("debug")) {
+            return "调试"
+        } else if (buildTypeName.contains("fortest")) {
+            return "测试"
+        }else if (buildTypeName.contains("release")) {
+            return "发布"
+        }
+    } catch (Exception e) {
+    }
+    return null
+}
+
+// 修改versionCode和outputFile
+android.applicationVariants.all { variant ->
+
+    int buildCode = gitBuildCode()
+    if (buildCode >= 0) {
+        // 重新命名versionCode
+        variant.mergedFlavor.versionCode = buildCode
+    }
+    // 修改gradle.properties中appBuildCode的值
+    updateBuildCode(variant.mergedFlavor.versionCode)
+
+    // apk名字
+    def apkName = variant.mergedFlavor.versionName + "." + variant.mergedFlavor.versionCode
+    // 如果不是发布版本，app名字后面加上编译环境号
+    if (!"release".equals(variant.buildType.name)) {
+        def versionNameExt = getVersionNameExt(variant.buildType.name)
+        apkName = apkName + "_" + versionNameExt
+    }
+    apkName = apkName + ".apk"
+    variant.getPackageApplication().outputScope.apkDatas.forEach { apkData ->
+        //这个修改输出APK的文件名
+        apkData.outputFileName = apkName
+    }
+
+    // 重新定义输出路径
+    def outputParent = getApkOutput()
+    if (outputParent == null || "".equals(htmlInputPath)) {
+        outputParent = output.outputFile.parent
+    }
+    def pathNameExt = getPathNameExt(variant.buildType.name)
+    if(pathNameExt != null){
+        outputParent = outputParent + File.separator + pathNameExt
+    }
+    variant.getPackageApplication().outputDirectory = new File(outputParent)
+}
+
+// 添加任务被添加监听器
+gradle.addListener new TaskExecutionListener() {
+
+    @Override
+    void beforeExecute(Task task) {
+        // 必须是app模块
+        if (task.getProject() != project) {
+            return
+        }
+        // 必须任务generateXXXXAssets开始之前，修改www文件夹
+        if (!task.name.startsWith("generate") || !task.name.endsWith("Assets")) {
+            return
+        }
+        try {
+            // 必须htmlInputPath存在，gradle.properties中配置的htmlInputPath
+            def htmlInputPath = getHtmlInput()
+            if (htmlInputPath == null || "".equals(htmlInputPath)) {
+                return
+            }
+            File htmlInputFile = new File(htmlInputPath)
+
+            println("htmlInputFile:"+htmlInputFile.getAbsolutePath())
+
+            if (!htmlInputFile.exists() || !htmlInputFile.canRead()) {
+                return
+            }
+            // 从htmlInputPath拷贝到assert/www
+            String assertPath = projectDir.getAbsolutePath() + File.separator + "src" + File.separator + "main" + File.separator + "assets"
+            File destinationFile = new File(assertPath)
+            File destinationWwwFile = new File(assertPath + File.separator + "html5")
+            if (destinationWwwFile.exists()) {
+                destinationWwwFile.delete()
+            }
+            if (!destinationWwwFile.exists()) {
+                destinationWwwFile.mkdirs()
+            }
+
+            println("-----------复制www文件到assert中，从：" + htmlInputFile.getAbsolutePath() + " 复制到：" + destinationFile.getAbsolutePath() + "-----------")
+            org.apache.commons.io.FileUtils.copyDirectory(htmlInputFile, destinationWwwFile)
+        } catch (Exception e) {
+            e.printStackTrace()
+        }
+    }
+
+    @Override
+    void afterExecute(Task task, TaskState state) {
+        // 必须是app模块
+        if (task.getProject() != project) {
+            return
+        }
+        // 必须是开始任务generateXXXXAssets之后，清理复制的www文件夹
+        if (!task.name.startsWith("assemble")) {
+            return
+        }
+        try {
+            // destinationWww 存在且是文件夹才删除
+            File destinationWww = new File(projectDir.getAbsolutePath() + File.separator + "src" + File.separator + "main" + File.separator + "assets" + File.separator + "html5")
+            if (!destinationWww.exists() || !destinationWww.isDirectory()) {
+                return
+            }
+            println("-----------删掉复制到assert中的www文件:" + destinationWww.getAbsolutePath() + "-----------")
+            org.gradle.util.GFileUtils.deleteDirectory(destinationWww)
+        } catch (Exception e) {
+            e.printStackTrace()
+        }
+    }
+}
+
+/**
+ * BuildConfig相关工具类
+ */
+class BuildConfigUtil {
+
+    /**
+     * 格式化字符串
+     * @param value
+     * @return
+     */
+    static wrapString(String value) {
+        if ("".equals(value)) {
+            value = null
+        }
+        return "\"" + value + "\""
+    }
+}
+

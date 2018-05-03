@@ -91,9 +91,6 @@ JsBridge.getInstance().off(this, "domLoadFinish", observer);
 ```SHELL
 JsBridge.getInstance().send(context, "onPayFinish", "{'orderNO':'11931398'}");
 ```
-<<<<<<< HEAD
-=======
 
 
 
->>>>>>> 0.0.7

@@ -1,0 +1,62 @@
+apply plugin: 'com.android.library'
+
+// jcenter plugin
+// apply plugin: 'com.aaron.gradle.bintray-release'
+apply plugin: 'com.novoda.bintray-release'
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode rootProject.ext.versionCode
+        versionName rootProject.ext.versionName
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    lintOptions {
+        abortOnError rootProject.ext.abortOnError
+    }
+    buildTypes {
+        debug {
+            minifyEnabled rootProject.ext.minifyEnabled
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        fortest {
+            minifyEnabled rootProject.ext.minifyEnabled
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        release {
+            minifyEnabled rootProject.ext.minifyEnabled
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "com.android.support.test:runner:$testRunnerVersion"
+    androidTestImplementation "com.android.support.test.espresso:espresso-core:$testEspressoVersion"
+
+    implementation 'com.google.code.gson:gson:2.8.0'
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+}
+
+// upload to jcenter cmd
+// ./gradlew --stacktrace bintrayUpload -PbintrayUser=r11devteam -PbintrayKey=XXXXXXXXXXXXXXXXXXXXXXX -PdryRun=false
+publish {
+    userOrg = 'r11devteam'
+    groupId = 'org.rainboweleven'
+    artifactId = 'rbridge'
+    publishVersion = "$versionName"
+    // archives file('build/outputs/test.jar')
+    desc = 'a framework that to use for hybrid app'
+    website = 'https://github.com/chenshaomou/R11-Android-SDK'
+}
+
+tasks.withType(Javadoc) {
+    options.addStringOption('Xdoclint:none', '-quiet')
+    options.addStringOption('encoding', 'UTF-8')
+}

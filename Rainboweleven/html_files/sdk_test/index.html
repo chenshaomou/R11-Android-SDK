@@ -1,0 +1,319 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>R11 SDK 测试</title>
+    <style>
+            .box{
+                display: flex;
+                display: -webkit-flex;
+                flex-direction:column;
+                width: 100%;
+                height: 100%;
+            }
+            .btn {
+                text-align: center;
+                background: dodgerblue;
+                color: white;
+                padding: 10px;
+                margin: 10px;
+                border-radius: 4px;
+                box-shadow: 4px 2px 10px #999;
+                flex:0 0 auto;
+                font-size: 28px;
+                word-wrap: break-word;
+            }
+
+            #content {
+                flex:1 0 30%;
+                background: gainsboro;
+                font-size: 48px;
+            }
+
+            #title {
+                flex:0 0 auto;
+            }
+
+            .bts{
+                flex:1 1 auto;
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: flex-start;
+                align-items: center;
+                align-content: flex-start;
+            }
+            </style>
+   <!-- <script type="text/javascript" src="rJsBridge.js"></script> -->
+</head>
+<body>
+<div class="box">
+    <div id= "title">
+        <h1 onclick="clean()">点我清除内容</h1>
+    </div>
+    <div id="content"></div>
+    <div class="bts">
+        <div class="btn" onclick="callSyn()">同步调用原生插件(不带参数)</div>
+        <div class="btn" onclick="callSynArgs()">同步调用原生插件(带参数,字典)</div>
+        <div class="btn" onclick="callSynArgsObj()">同步调用原生插件对象(带参数,字典)</div>
+        <div class="btn" onclick="callSynStringArgs()">同步调用原生插件(带参数,字符串)</div>
+        <div class="btn" onclick="callASynStringArgs()">异步调用原生插件(参数,字符串)</div>
+        <div class="btn" onclick="callASyn()">异步调用插件(不带参数)</div>
+        <div class="btn" onclick="callASynArgs()">异步调用原生插件(参数,字典)</div>
+        <div class="btn" onclick="callASynStoreObj()">异步调用原生插件对象(store对象,字典)</div>
+        <div class="btn" onclick="eventOn()">注册事件(不带参数)</div>
+        <div class="btn" onclick="eventSend()">发送事件(不带参数)</div>
+        <div class="btn" onclick="eventSendArgs()">发送事件(带参数)</div>
+        <div class="btn" onclick="eventOff()">取消事件()</div>
+        <div class="btn" onclick="promiseASynArgs()">promise异步调用原生插件(参数,字典)</div>
+        <div class="btn" onclick="promiseASyn()">promise异步调用插件(不带参数)</div>
+        <div class="btn" onclick="promiseObjASyn()">promise异步调用对象插件(不带参数)</div>
+
+        <div class="btn" onclick="netRequestGet()">异步调用网络get(不带参数)</div>
+        <div class="btn" onclick="netRequestPost()">异步调用网络post(对象)</div>
+
+        <div class="btn" onclick="sendPageFinish()">发送pageFinish事件(原生应该也能收到)</div>
+        <div class="btn" onclick="receiveEvent()">注册接收onPayFinish事件(可能来自原生)</div>
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+
+    var deviceReady = false
+    document.addEventListener("deviceready", function(){
+        deviceReady = true
+        // 给原生调用(不带参数)
+        // 原生将会调用到window.jsBridge.userDefault.testNavCall
+        jsBridge.register('testNavCall', function (params) {
+            var contentDiv = document.getElementById('content')
+            var paramsStr = JSON.stringify(params)
+            contentDiv.innerHTML = contentDiv.innerHTML + '<div>原生调用JS成功,原生传递参数：' + paramsStr + '</div>'
+            return 'testNavCall被调用，params：' + paramsStr
+        });
+        window.jsBridge.register('contentappend',function(r){
+        var _show = '原生调用js方法 contentappend ' + r + '</br>'
+        document.getElementById("content").innerHTML=_show
+        return 'call js func success'
+    })
+    }, false)
+
+    // 同步调用原生插件(不带参数)
+    function callSyn() {
+          if(!deviceReady){
+              return
+          }
+          console.log('同步调用原生插件(不带参数) begin')
+          var _result = jsBridge.call('appInfo', 'version', {})
+          var _show = '同步调用原生插件 appinfo.version (不带参数) end，原生返回结果：' + _result
+          console.log(_show)
+          document.getElementById("content").innerHTML=_show
+    }
+    // 同步调用原生插件(带参数,字典)
+    function callSynArgs() {
+        if(!deviceReady){
+            return
+        }
+        console.log('同步调用原生插件 store.set (带参数,字典) begin')
+        var _result = jsBridge.call('store', 'set', {'foo': 'bar'})
+        var _show = '同步调用原生插件 store.set (带参数,字典) end， 原生返回结果：' + _result
+        console.log(_show)
+        document.getElementById("content").innerHTML=_show
+    }
+
+    // 同步调用原生插件(带参数,字典)，快捷方式
+    function callSynArgsObj() {
+        if(!deviceReady){
+            return
+        }
+        console.log('同步调用原生插件 store.set (带参数,字典) begin')
+        var _result = jsBridge.store.set({'foo1': 'bar1'})
+        var _show = '同步调用原生插件（插件对象）store.set (带参数,字典) end， 原生返回结果：' + _result
+        console.log(_show)
+        document.getElementById("content").innerHTML=_show
+    }
+
+    // 同步调用原生插件(带参数,字符串)
+    function callSynStringArgs() {
+        if(!deviceReady){
+            return
+        }
+        console.log('同步调用原生插件 store.get (带参数,字符串) begin')
+        var _result = jsBridge.call('store', 'get', 'foo')
+        var _show = '同步调用原生插件(带参数,字符串) store.get end，原生返回结果：' + _result
+        console.log(_show)
+        document.getElementById("content").innerHTML=_show
+    }
+
+    // 异步调用原生插件(参数,字符串)
+    function callASynStringArgs() {
+        if(!deviceReady){
+            return
+        }
+        console.log('异步调用原生插件 store.remove (参数,字符串) begin')
+        jsBridge.call('store', 'remove', 'foo1', function (r) {
+              var _show = '异步调用原生插件 store.remove (参数,字符串) end，原生返回结果：' + r
+              console.log(_show)
+              document.getElementById("content").innerHTML= document.getElementById("content").innerHTML + _show
+        })
+        document.getElementById("content").innerHTML = "此处js方法执行完毕，等待异步执行结果...<br/>"
+    }
+
+    // 异步调用插件(不带参数)
+    function callASyn() {
+        if(!deviceReady){
+            return
+        }
+        console.log('异步调用插件(不带参数) begin')
+        jsBridge.call('appInfo', 'version', function (r) {
+              var _show = '异步调用原生插件 appInfo.version (参数,字符串) end，原生返回结果：' + r
+              console.log(_show)
+              document.getElementById("content").innerHTML= document.getElementById("content").innerHTML + _show
+        })
+        document.getElementById("content").innerHTML = "此处js方法执行完毕，等待异步执行结果...<br/>"
+    }
+
+    // 异步调用原生插件(参数,字典)
+    function callASynArgs() {
+        if(!deviceReady){
+            return
+        }
+        console.log('异步调用原生插件 store.set (参数,字典) begin')
+        jsBridge.call('store', 'set', {'foo': 'bar'}, function (r) {
+              var _show = '异步调用原生插件 store.set (参数,字符串) end，原生返回结果：' + r
+              console.log(_show)
+              document.getElementById("content").innerHTML= document.getElementById("content").innerHTML + _show
+        })
+        document.getElementById("content").innerHTML = "此处js方法执行完毕，等待异步执行结果...<br/>"
+    }
+
+    // 异步调用原生插件(store对象,字典)
+    function callASynStoreObj() {
+        if(!deviceReady){
+            return
+        }
+        console.log('异步调用原生插件(store对象,字典) begin')
+        jsBridge.store.set({'foo': 'bar'}, function (r) {
+           var _show = '异步调用原生插件对象 store.set (参数,字符串) end，原生返回结果：' + r
+           console.log(_show)
+           document.getElementById("content").innerHTML= document.getElementById("content").innerHTML + _show
+        })
+        document.getElementById("content").innerHTML = "此处js方法执行完毕，等待异步执行结果...<br/>"
+    }
+
+    // 监听事件(不带参数)
+    function eventOn() {
+        if(!deviceReady){
+            return
+        }
+        console.log('注册事件(不带参数) begin')
+        jsBridge.on('onResume', function(r){
+            document.getElementById("content").innerHTML = "onResume 事件...<br/>"
+        })
+    }
+
+    // 发送事件(不带参数)
+    function eventSend() {
+        if(!deviceReady){
+            return
+        }
+        console.log('发送事件(不带参数) begin')
+        var _result = jsBridge.send('testEvent')
+        console.log('发送事件(不带参数) end，原生返回结果：' + _result)
+    }
+    // 发送事件(带参数)
+    function eventSendArgs() {
+        if(!deviceReady){
+            return
+        }
+        console.log('发送事件(带参数) begin')
+        var _result = jsBridge.send('testEvent', {'height': 100})
+        console.log('发送事件(带参数) end，原生返回结果：' + _result)
+    }
+    // 取消事件()
+    function eventOff() {
+        if(!deviceReady){
+            return
+        }
+        console.log('取消事件() begin')
+        var _result = jsBridge.off('onResume')
+        document.getElementById("content").innerHTML = "onResume 事件取消<br/>"
+        console.log('取消事件() end，原生返回结果：' + _result)
+    }
+
+    // promise 方式调用带参数
+    function promiseASynArgs() {
+        window.jsBridge.promise('store','set',{'foo2':'bar2'}).then(function(r){
+            var _show = document.getElementById("content").innerHTML + '异步 promise 调用原生插件对象 store.set (参数,字符串) end，原生返回结果：' + r
+            console.log(_show)
+            document.getElementById("content").innerHTML= _show
+        })
+        document.getElementById("content").innerHTML = "此处js方法执行完毕，等待异步执行结果...<br/>"
+    }
+
+    // promise 方式调用不带参数
+    function promiseASyn() {
+        window.jsBridge.promise('store','get','foo2').then(function(r){
+            var _show = document.getElementById("content").innerHTML + '异步 promise 调用原生插件对象 store.get (参数,字符串) end，原生返回结果：' + r
+            console.log(_show)
+            document.getElementById("content").innerHTML= _show
+        })
+        document.getElementById("content").innerHTML = "此处js方法执行完毕，等待异步执行结果...<br/>"
+    }
+
+    // promise 对象插件
+    function promiseObjASyn() {
+        window.jsBridge.appInfo.versionPromise().then(function(r){
+          var _show = document.getElementById("content").innerHTML + '异步 promise 调用原生插件对象 appInfo.versionPromise (参数,字符串) end，原生返回结果：' + r
+          console.log(_show)
+          document.getElementById("content").innerHTML= _show
+        })
+        document.getElementById("content").innerHTML = "此处js方法执行完毕，等待异步执行结果...<br/>"
+    }
+
+    // net Request get
+    function netRequestGet() {
+        if(!deviceReady){
+            return
+        }
+        console.log('异步调用原生插件 network.request get begin')
+        jsBridge.call('network', 'request',{'url':'https://postman-echo.com/get?test=123'} ,function (r) {
+          var _show = '异步调用原生插件 network.request get end，原生返回结果：' + r
+          console.log(_show)
+          document.getElementById("content").innerHTML= document.getElementById("content").innerHTML + _show
+          })
+        document.getElementById("content").innerHTML = "此处js方法执行完毕，等待异步执行结果...<br/>"
+    }
+
+    // net Request post
+    function netRequestPost() {
+        if(!deviceReady){
+            return
+        }
+        console.log('异步调用原生插件 network.request post begin')
+        jsBridge.call('network','request',{'url':'https://postman-echo.com/post','data':{'foo':'bar'},'method':'post','header':{'Content-Type':'application/json'}} ,function (r) {
+          var _show = '异步调用原生插件 network.request post end，原生返回结果：' + r
+          console.log(_show)
+          document.getElementById("content").innerHTML= document.getElementById("content").innerHTML + _show
+          })
+          document.getElementById("content").innerHTML = "此处js方法执行完毕，等待异步执行结果...<br/>"
+    }
+
+    function sendPageFinish(){
+        if(!deviceReady){
+            return
+        }
+        var _result = jsBridge.send('pageFinish', {'height': 100})
+        document.getElementById("content").innerHTML = "发送pageFinish 事件给原生返回"+_result
+    }
+
+    function receiveEvent(){
+       jsBridge.on('onPayFinish', function(r){
+            document.getElementById("content").innerHTML = "收到原生的onPayFinish 事件...<br/>"
+        })
+    }
+
+    function clean() {
+        document.getElementById("content").innerHTML=""
+    }
+
+    </script>
+</html>
